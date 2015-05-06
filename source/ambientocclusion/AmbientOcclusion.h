@@ -53,6 +53,7 @@ protected:
     /* members */
     globjects::ref_ptr<globjects::Framebuffer> m_fbo;
     globjects::ref_ptr<globjects::Texture> m_colorAttachment;
+    globjects::ref_ptr<globjects::Texture> m_normalAttachment;
     globjects::ref_ptr<globjects::Texture> m_depthAttachment;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;

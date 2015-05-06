@@ -56,18 +56,22 @@ void AmbientOcclusion::setupFramebuffer()
     {
         m_colorAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
         m_colorAttachment->bind(); // workaround
+        m_normalAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
+        m_normalAttachment->bind();
         m_depthAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
-        m_depthAttachment->bind(); // workaround
+        m_depthAttachment->bind();
     }
     else
     {
         m_colorAttachment = Texture::createDefault(GL_TEXTURE_2D);
+        m_normalAttachment = Texture::createDefault(GL_TEXTURE_2D);
         m_depthAttachment = Texture::createDefault(GL_TEXTURE_2D);
     }
     
     m_fbo = make_ref<Framebuffer>();
     
     m_fbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
+    m_fbo->attachTexture(GL_COLOR_ATTACHMENT1, m_normalAttachment);
     m_fbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthAttachment);
     
     updateFramebuffer();
@@ -91,11 +95,13 @@ void AmbientOcclusion::updateFramebuffer()
     if (m_multisampling)
     {
         m_colorAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
+        m_normalAttachment->image2DMultisample(numSamples, GL_RGB8, width, height, GL_TRUE);
         m_depthAttachment->image2DMultisample(numSamples, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
     }
     else
     {
         m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        m_normalAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         m_depthAttachment->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
     }
 }
@@ -148,6 +154,7 @@ void AmbientOcclusion::onPaint()
 
     m_fbo->bind(GL_FRAMEBUFFER);
     m_fbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
+    m_fbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 0.0f});
     m_fbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0.0f);
     
     glEnable(GL_DEPTH_TEST);
@@ -158,7 +165,6 @@ void AmbientOcclusion::onPaint()
     m_grid->update(eye, transform);
     m_grid->draw();
 
-    
     m_program->use();
     m_program->setUniform(m_transformLocation, transform);
     
