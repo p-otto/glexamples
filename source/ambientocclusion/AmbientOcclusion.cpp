@@ -22,8 +22,7 @@
 #include <gloperate/painter/VirtualTimeCapability.h>
 
 #include <gloperate/primitives/AdaptiveGrid.h>
-#include <gloperate/primitives/Icosahedron.h>
-
+#include <gloperate/base/make_unique.hpp>
 
 using namespace gl;
 using namespace glm;
@@ -37,6 +36,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
+,   m_meshLoader()
 {
 }
 
@@ -56,9 +56,12 @@ void AmbientOcclusion::setupProjection()
 void AmbientOcclusion::onInitialize()
 {
     // create program
-
     globjects::init();
 
+    auto scene = m_meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
+    std::unique_ptr<gloperate::PolygonalDrawable> foo{new gloperate::PolygonalDrawable(*scene)};
+    m_model = std::move(foo);
+    
 #ifdef __APPLE__
     Shader::clearGlobalReplacements();
     Shader::globalReplace("#version 140", "#version 150");
@@ -69,12 +72,10 @@ void AmbientOcclusion::onInitialize()
     m_grid = new gloperate::AdaptiveGrid{};
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 
-    m_icosahedron = new gloperate::Icosahedron{3};
-
     m_program = new Program{};
     m_program->attach(
-        Shader::fromFile(GL_VERTEX_SHADER, "data/AmbientOcclusion/icosahedron.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/AmbientOcclusion/icosahedron.frag")
+        Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
     );
 
     m_transformLocation = m_program->getUniformLocation("transform");
@@ -117,7 +118,7 @@ void AmbientOcclusion::onPaint()
     m_program->use();
     m_program->setUniform(m_transformLocation, transform);
 
-    m_icosahedron->draw();
+    m_model->draw();
 
     m_program->release();
 

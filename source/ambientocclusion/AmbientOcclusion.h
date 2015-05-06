@@ -5,9 +5,10 @@
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
-
 #include <gloperate/painter/Painter.h>
+#include <gloperate/primitives/PolygonalDrawable.h>
 
+#include <gloperate-assimp/AssimpMeshLoader.h>
 
 namespace globjects
 {
@@ -37,6 +38,8 @@ protected:
     virtual void onPaint() override;
 
 protected:
+    gloperate_assimp::AssimpMeshLoader m_meshLoader;
+    
     /* capabilities */
     gloperate::AbstractTargetFramebufferCapability * m_targetFramebufferCapability;
     gloperate::AbstractViewportCapability * m_viewportCapability;
@@ -45,7 +48,7 @@ protected:
 
     /* members */
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    globjects::ref_ptr<gloperate::Icosahedron> m_icosahedron;
+    std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     globjects::ref_ptr<globjects::Program> m_program;
     gl::GLint m_transformLocation;
 };
