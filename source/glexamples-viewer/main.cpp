@@ -42,5 +42,5 @@ int main(int argc, char * argv[])
     gloperate_qtapplication::Viewer viewer;
     viewer.show();
 
-    app.exec();
+    return app.exec();
 }
