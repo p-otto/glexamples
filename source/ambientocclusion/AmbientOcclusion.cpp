@@ -82,9 +82,34 @@ void AmbientOcclusion::setupFramebuffer()
 void AmbientOcclusion::setupModel()
 {
     const auto meshLoader = gloperate_assimp::AssimpMeshLoader{};
-    
     const auto scene = meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
     m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*scene);
+    
+    m_grid = new gloperate::AdaptiveGrid{};
+    m_grid->setColor({0.6f, 0.6f, 0.6f});
+}
+
+void AmbientOcclusion::setupShaders()
+{
+    m_modelProgram = new Program{};
+    m_modelProgram->attach(
+                           Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
+                           Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
+    );
+    
+    m_transformLocation = m_modelProgram->getUniformLocation("transform");
+    
+    m_ambientOcclusionProgram = new Program{};
+    m_ambientOcclusionProgram->attach(
+                           Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/ssao_crytek.vert"),
+                           Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
+    );
+    
+    m_blurProgram = new Program{};
+    m_blurProgram->attach(
+                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/blur.vert"),
+                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur.frag")
+    );
 }
 
 void AmbientOcclusion::updateFramebuffer()
@@ -118,24 +143,15 @@ void AmbientOcclusion::onInitialize()
     debug() << "Using global OS X shader replacement '#version 140' -> '#version 150'" << std::endl;
 #endif
 
-    m_grid = new gloperate::AdaptiveGrid{};
-    m_grid->setColor({0.6f, 0.6f, 0.6f});
-
-    setupFramebuffer();
-    setupModel();
-    
-    m_program = new Program{};
-    m_program->attach(
-        Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
-    );
-
-    m_transformLocation = m_program->getUniformLocation("transform");
-
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
 
-    m_cameraCapability->setEye(glm::vec3(0, 2.0f, -2.0f));
+    // some magic numbers that give a good view on the teapot
+    m_cameraCapability->setEye(glm::vec3(0.0f, 1.7f, -2.0f));
+    m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
     
+    setupFramebuffer();
+    setupModel();
+    setupShaders();
     setupProjection();
 }
 
@@ -165,12 +181,12 @@ void AmbientOcclusion::onPaint()
     m_grid->update(eye, transform);
     m_grid->draw();
 
-    m_program->use();
-    m_program->setUniform(m_transformLocation, transform);
+    m_modelProgram->use();
+    m_modelProgram->setUniform(m_transformLocation, transform);
     
     m_model->draw();
     
-    m_program->release();
+    m_modelProgram->release();
     
     Framebuffer::unbind(GL_FRAMEBUFFER);
     

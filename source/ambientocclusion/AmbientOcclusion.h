@@ -38,6 +38,7 @@ public:
     void setupFramebuffer();
     void updateFramebuffer();
     void setupModel();
+    void setupShaders();
 
 protected:
     virtual void onInitialize() override;
@@ -57,7 +58,9 @@ protected:
     globjects::ref_ptr<globjects::Texture> m_depthAttachment;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    globjects::ref_ptr<globjects::Program> m_program;
+    globjects::ref_ptr<globjects::Program> m_modelProgram;
+    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgram;
+    globjects::ref_ptr<globjects::Program> m_blurProgram;
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     
     bool m_multisampling = true;
