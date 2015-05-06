@@ -37,9 +37,7 @@ protected:
     virtual void onInitialize() override;
     virtual void onPaint() override;
 
-protected:
-    gloperate_assimp::AssimpMeshLoader m_meshLoader;
-    
+protected:    
     /* capabilities */
     gloperate::AbstractTargetFramebufferCapability * m_targetFramebufferCapability;
     gloperate::AbstractViewportCapability * m_viewportCapability;

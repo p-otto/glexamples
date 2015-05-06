@@ -11,8 +11,6 @@
 #include <globjects/DebugMessage.h>
 #include <globjects/Program.h>
 
-#include <widgetzeug/make_unique.hpp>
-
 #include <gloperate/base/RenderTargetType.h>
 
 #include <gloperate/painter/TargetFramebufferCapability.h>
@@ -28,15 +26,12 @@ using namespace gl;
 using namespace glm;
 using namespace globjects;
 
-using widgetzeug::make_unique;
-
 AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 :   Painter(resourceManager)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
-,   m_meshLoader()
 {
 }
 
@@ -58,9 +53,10 @@ void AmbientOcclusion::onInitialize()
     // create program
     globjects::init();
 
-    auto scene = m_meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
-    std::unique_ptr<gloperate::PolygonalDrawable> foo{new gloperate::PolygonalDrawable(*scene)};
-    m_model = std::move(foo);
+    const auto meshLoader = gloperate_assimp::AssimpMeshLoader{};
+    
+    const auto scene = meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
+    m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*scene);
     
 #ifdef __APPLE__
     Shader::clearGlobalReplacements();
