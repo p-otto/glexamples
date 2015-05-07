@@ -63,6 +63,9 @@ protected:
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
     
+    globjects::ref_ptr<globjects::Framebuffer> m_blurFbo;
+    globjects::ref_ptr<globjects::Texture> m_blurAttachment;
+    
     globjects::ref_ptr<globjects::Program> m_modelProgram;
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgram;
     globjects::ref_ptr<globjects::Program> m_blurProgram;
@@ -72,7 +75,7 @@ protected:
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     globjects::ref_ptr<gloperate::ScreenAlignedQuad> m_screenAlignedQuad;
     
-    bool m_multisampling = true;
+    bool m_multisampling = false;
     
     gl::GLint m_transformLocation;
 };

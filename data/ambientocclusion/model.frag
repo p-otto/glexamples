@@ -11,7 +11,7 @@ const vec3 light_dir = vec3(0.0, 1.0, 0.0);
 void main()
 {
     vec3 norm_normal = normalize(v_normal);
-    normal = vec3(1.0, 0.0, 0.0);//norm_normal * 0.5 + 0.5;
+    normal = norm_normal * 0.5 + 0.5;
     float diffuse_factor = max(0, dot(norm_normal, light_dir));
     fragColor = diffuse_factor * vec4(1.0);
 }

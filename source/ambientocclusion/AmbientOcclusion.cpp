@@ -63,6 +63,9 @@ void AmbientOcclusion::setupFramebuffers()
         
         m_occlusionAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
         m_occlusionAttachment->bind();
+        
+        m_blurAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
+        m_blurAttachment->bind();
     }
     else
     {
@@ -71,15 +74,21 @@ void AmbientOcclusion::setupFramebuffers()
         m_depthAttachment = Texture::createDefault(GL_TEXTURE_2D);
         
         m_occlusionAttachment = Texture::createDefault(GL_TEXTURE_2D);
+        
+        m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
     }
     
     m_modelFbo = make_ref<Framebuffer>();
     m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
     m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT1, m_normalAttachment);
     m_modelFbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthAttachment);
+    m_modelFbo->setDrawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
     
     m_occlusionFbo = make_ref<Framebuffer>();
     m_occlusionFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_occlusionAttachment);
+    
+    m_blurFbo = make_ref<Framebuffer>();
+    m_blurFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurAttachment);
     
     updateFramebuffers();
     
@@ -138,6 +147,8 @@ void AmbientOcclusion::updateFramebuffers()
         m_depthAttachment->image2DMultisample(numSamples, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
         
         m_occlusionAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
+        
+        m_blurAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
     }
     else
     {
@@ -146,6 +157,8 @@ void AmbientOcclusion::updateFramebuffers()
         m_depthAttachment->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
         
         m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+        
+        m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     }
 }
 
@@ -208,38 +221,49 @@ void AmbientOcclusion::onPaint()
     
     // calculate ambient occlusion
     m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_ambientOcclusionProgram);
-    // TODO: bind fbo
-    // TODO: set texture uniforms from model shader
-    //m_screenAlignedQuad->draw();
+    m_screenAlignedQuad->program()->use();
+    
+    m_occlusionFbo->bind();
+    m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
+    
+    m_depthAttachment->bindActive(GL_TEXTURE0);
+    m_screenAlignedQuad->program()->setUniform("u_depth", 0);
+    m_normalAttachment->bindActive(GL_TEXTURE1);
+    m_screenAlignedQuad->program()->setUniform("u_normal", 1);
+    
+    m_screenAlignedQuad->draw();
     
     // blur ambient occlusion texture
     m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
-    // TODO: bind fbo (maybe use unused one for lower memory footprint)
-    // TODO: set texture uniforms from ssao shader
-    //m_screenAlignedQuad->draw();
+    m_screenAlignedQuad->program()->use();
+    
+    m_blurFbo->bind();
+    m_blurFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
+    
+    m_occlusionAttachment->bindActive(GL_TEXTURE0);
+    m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
+    
+    m_screenAlignedQuad->draw();
     
     // finally, render to screen
-    Framebuffer::unbind(GL_FRAMEBUFFER);
+    auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
     
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_mixProgram);
-    // TODO: set color and blur textures
-    //m_screenAlignedQuad->draw();
-    
-    const auto rect = std::array<gl::GLint, 4>{{
-        m_viewportCapability->x(),
-        m_viewportCapability->y(),
-        m_viewportCapability->width(),
-        m_viewportCapability->height()}};
-    
-    auto targetfbo = m_targetFramebufferCapability->framebuffer();
-    auto drawBuffer = GL_COLOR_ATTACHMENT0;
-    
-    if (!targetfbo)
-    {
-        targetfbo = globjects::Framebuffer::defaultFBO();
-        drawBuffer = GL_BACK_LEFT;
+    auto draw_buffer = GL_COLOR_ATTACHMENT0;
+    if (!default_framebuffer) {
+        default_framebuffer = globjects::Framebuffer::defaultFBO();
+        draw_buffer = GL_BACK_LEFT;
     }
     
-    m_modelFbo->blit(GL_COLOR_ATTACHMENT0, rect, targetfbo, drawBuffer, rect,
-                GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    default_framebuffer->bind(GL_FRAMEBUFFER);
+    default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_mixProgram);
+    m_screenAlignedQuad->program()->use();
+    
+    m_colorAttachment->bindActive(GL_TEXTURE0);
+    m_screenAlignedQuad->program()->setUniform("u_color", 0);
+    m_blurAttachment->bindActive(GL_TEXTURE1);
+    m_screenAlignedQuad->program()->setUniform("u_blur", 1);
+    
+    m_screenAlignedQuad->draw();
 }
