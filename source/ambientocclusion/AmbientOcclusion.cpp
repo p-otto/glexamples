@@ -50,7 +50,7 @@ void AmbientOcclusion::setupProjection()
     m_grid->setNearFar(zNear, zFar);
 }
 
-void AmbientOcclusion::setupFramebuffer()
+void AmbientOcclusion::setupFramebuffers()
 {
     if (m_multisampling)
     {
@@ -60,23 +60,31 @@ void AmbientOcclusion::setupFramebuffer()
         m_normalAttachment->bind();
         m_depthAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
         m_depthAttachment->bind();
+        
+        m_occlusionAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
+        m_occlusionAttachment->bind();
     }
     else
     {
         m_colorAttachment = Texture::createDefault(GL_TEXTURE_2D);
         m_normalAttachment = Texture::createDefault(GL_TEXTURE_2D);
         m_depthAttachment = Texture::createDefault(GL_TEXTURE_2D);
+        
+        m_occlusionAttachment = Texture::createDefault(GL_TEXTURE_2D);
     }
     
-    m_fbo = make_ref<Framebuffer>();
+    m_modelFbo = make_ref<Framebuffer>();
+    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
+    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT1, m_normalAttachment);
+    m_modelFbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthAttachment);
     
-    m_fbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
-    m_fbo->attachTexture(GL_COLOR_ATTACHMENT1, m_normalAttachment);
-    m_fbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthAttachment);
+    m_occlusionFbo = make_ref<Framebuffer>();
+    m_occlusionFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_occlusionAttachment);
     
-    updateFramebuffer();
+    updateFramebuffers();
     
-    m_fbo->printStatus(true);
+    m_modelFbo->printStatus(true);
+    m_occlusionFbo->printStatus(true);
 }
 
 void AmbientOcclusion::setupModel()
@@ -85,7 +93,7 @@ void AmbientOcclusion::setupModel()
     const auto scene = meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
     m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*scene);
     
-    m_grid = new gloperate::AdaptiveGrid{};
+    m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 }
 
@@ -101,18 +109,24 @@ void AmbientOcclusion::setupShaders()
     
     m_ambientOcclusionProgram = new Program{};
     m_ambientOcclusionProgram->attach(
-                           Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/ssao_crytek.vert"),
-                           Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
     );
     
     m_blurProgram = new Program{};
     m_blurProgram->attach(
-                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/blur.vert"),
-                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur.frag")
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur.frag")
+    );
+    
+    m_mixProgram = new Program{};
+    m_mixProgram->attach(
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/mix.frag")
     );
 }
 
-void AmbientOcclusion::updateFramebuffer()
+void AmbientOcclusion::updateFramebuffers()
 {
     static const auto numSamples = 4u;
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
@@ -122,12 +136,16 @@ void AmbientOcclusion::updateFramebuffer()
         m_colorAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
         m_normalAttachment->image2DMultisample(numSamples, GL_RGB8, width, height, GL_TRUE);
         m_depthAttachment->image2DMultisample(numSamples, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
+        
+        m_occlusionAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
     }
     else
     {
         m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         m_normalAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         m_depthAttachment->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
+        
+        m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     }
 }
 
@@ -149,7 +167,7 @@ void AmbientOcclusion::onInitialize()
     m_cameraCapability->setEye(glm::vec3(0.0f, 1.7f, -2.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
     
-    setupFramebuffer();
+    setupFramebuffers();
     setupModel();
     setupShaders();
     setupProjection();
@@ -168,10 +186,10 @@ void AmbientOcclusion::onPaint()
         m_viewportCapability->setChanged(false);
     }
 
-    m_fbo->bind(GL_FRAMEBUFFER);
-    m_fbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
-    m_fbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 0.0f});
-    m_fbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0.0f);
+    m_modelFbo->bind(GL_FRAMEBUFFER);
+    m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
+    m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 1.0f, 0.0f, 0.0f});
+    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0.0f);
     
     glEnable(GL_DEPTH_TEST);
     
@@ -188,7 +206,24 @@ void AmbientOcclusion::onPaint()
     
     m_modelProgram->release();
     
+    // calculate ambient occlusion
+    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_ambientOcclusionProgram);
+    // TODO: bind fbo
+    // TODO: set texture uniforms from model shader
+    //m_screenAlignedQuad->draw();
+    
+    // blur ambient occlusion texture
+    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
+    // TODO: bind fbo (maybe use unused one for lower memory footprint)
+    // TODO: set texture uniforms from ssao shader
+    //m_screenAlignedQuad->draw();
+    
+    // finally, render to screen
     Framebuffer::unbind(GL_FRAMEBUFFER);
+    
+    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_mixProgram);
+    // TODO: set color and blur textures
+    //m_screenAlignedQuad->draw();
     
     const auto rect = std::array<gl::GLint, 4>{{
         m_viewportCapability->x(),
@@ -205,6 +240,6 @@ void AmbientOcclusion::onPaint()
         drawBuffer = GL_BACK_LEFT;
     }
     
-    m_fbo->blit(GL_COLOR_ATTACHMENT0, rect, targetfbo, drawBuffer, rect,
+    m_modelFbo->blit(GL_COLOR_ATTACHMENT0, rect, targetfbo, drawBuffer, rect,
                 GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
