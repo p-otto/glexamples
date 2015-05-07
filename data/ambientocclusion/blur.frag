@@ -5,22 +5,20 @@ in vec2 v_uv;
 
 uniform sampler2D u_occlusion;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out float occlusion;
 
 #define KERNEL_SIZE 3
 #define EPSILON 0.005
 
 void main()
 {
-    vec3 color = vec3(0.0);
+    occlusion = 0.0;
     for (int x = -KERNEL_SIZE; x <= KERNEL_SIZE; ++x)
     {
         for (int y = -KERNEL_SIZE; y <= KERNEL_SIZE; ++y)
         {
-            color += texture(u_occlusion, v_uv + vec2(x * EPSILON, y * EPSILON)).rgb;
+            occlusion += texture(u_occlusion, v_uv + vec2(x * EPSILON, y * EPSILON)).r;
         }
     }
-    color /= (KERNEL_SIZE * 2 + 1) * (KERNEL_SIZE * 2 + 1);
-
-    fragColor = vec4(color, 1.0);
+    occlusion /= (KERNEL_SIZE * 2 + 1) * (KERNEL_SIZE * 2 + 1);
 }

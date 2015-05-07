@@ -10,9 +10,8 @@ layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    fragColor = mix(
-        vec4(texture(u_color, v_uv).rgb, 1.0),
-        vec4(texture(u_blur, v_uv).rrr, 1.0),
-        0.5
-    );
+    vec3 color = texture(u_color, v_uv).rgb;
+    float occlusion = texture(u_blur, v_uv).r;
+
+    fragColor = vec4(color - vec3(occlusion), 1.0);
 }

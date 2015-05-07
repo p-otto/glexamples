@@ -12,6 +12,5 @@ void main()
 {
     vec3 norm_normal = normalize(v_normal);
     normal = norm_normal * 0.5 + 0.5;
-    float diffuse_factor = max(0, dot(norm_normal, light_dir));
-    fragColor = diffuse_factor * vec4(1.0);
+    fragColor = vec4(1.0);
 }
