@@ -7,8 +7,8 @@ uniform sampler2D u_occlusion;
 
 layout(location = 0) out float occlusion;
 
-#define KERNEL_SIZE 3
-#define EPSILON 0.005
+#define KERNEL_SIZE 2
+#define EPSILON 0.0005
 
 void main()
 {

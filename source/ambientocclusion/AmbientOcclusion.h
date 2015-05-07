@@ -42,6 +42,8 @@ public:
     void updateFramebuffers();
     void setupModel();
     void setupShaders();
+    
+    std::vector<glm::vec3> getCrytekKernel(int size);
 
 protected:
     virtual void onInitialize() override;
@@ -57,8 +59,8 @@ protected:
     /* members */
     globjects::ref_ptr<globjects::Framebuffer> m_modelFbo;
     globjects::ref_ptr<globjects::Texture> m_colorAttachment;
-    globjects::ref_ptr<globjects::Texture> m_normalAttachment;
-    globjects::ref_ptr<globjects::Texture> m_depthAttachment;
+    globjects::ref_ptr<globjects::Texture> m_normalDepthAttachment;
+    globjects::ref_ptr<globjects::Texture> m_depthBuffer;
     
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
