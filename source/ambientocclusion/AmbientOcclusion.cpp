@@ -269,16 +269,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->draw();
     
     // blur ambient occlusion texture
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
-    m_screenAlignedQuad->program()->use();
-    
-    m_blurFbo->bind();
-    m_blurFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
-    
-    m_occlusionAttachment->bindActive(GL_TEXTURE0);
-    m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
-    
-    m_screenAlignedQuad->draw();
+	blur(m_occlusionAttachment, m_blurFbo);
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
@@ -301,4 +292,20 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->program()->setUniform("u_blur", 1);
     
     m_screenAlignedQuad->draw();
+}
+
+
+void AmbientOcclusion::blur(globjects::Texture *input, globjects::Framebuffer *output) {
+	// TODO: two-pass blur
+
+	m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
+	m_screenAlignedQuad->program()->use();
+
+	output->bind();
+	output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
+
+	input->bindActive(GL_TEXTURE0);
+	m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
+
+	m_screenAlignedQuad->draw();
 }

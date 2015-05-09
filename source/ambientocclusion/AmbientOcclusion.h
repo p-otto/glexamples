@@ -43,6 +43,8 @@ public:
     void setupModel();
     void setupShaders();
     
+	void blur(globjects::Texture *input, globjects::Framebuffer *output);
+
     std::vector<glm::vec3> getCrytekKernel(int size);
 
 protected:
