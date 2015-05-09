@@ -219,6 +219,7 @@ void AmbientOcclusion::onPaint()
             m_viewportCapability->height());
 
         m_viewportCapability->setChanged(false);
+		updateFramebuffers();
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -226,7 +227,7 @@ void AmbientOcclusion::onPaint()
     m_modelFbo->bind(GL_FRAMEBUFFER);
     m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
-    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0.0f);
+    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
     
     const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
     const auto eye = m_cameraCapability->eye();
