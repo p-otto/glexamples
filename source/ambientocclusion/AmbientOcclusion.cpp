@@ -248,6 +248,7 @@ void AmbientOcclusion::onPaint()
             m_viewportCapability->height());
 
         m_viewportCapability->setChanged(false);
+		updateFramebuffers();
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -255,7 +256,7 @@ void AmbientOcclusion::onPaint()
     m_modelFbo->bind(GL_FRAMEBUFFER);
     m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
-    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0.0f);
+    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
     
     const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
     const auto eye = m_cameraCapability->eye();
@@ -303,18 +304,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->draw();
     
     // blur ambient occlusion texture
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
-    m_screenAlignedQuad->program()->use();
-    
-    m_blurFbo->bind();
-    m_blurFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
-    
-    m_occlusionAttachment->bindActive(GL_TEXTURE0);
-    m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
-    m_normalDepthAttachment->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 1);
-    
-    m_screenAlignedQuad->draw();
+	blur(m_occlusionAttachment, m_blurFbo);
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
@@ -334,4 +324,20 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->program()->setUniform("u_blur", 1);
     
     m_screenAlignedQuad->draw();
+}
+
+
+void AmbientOcclusion::blur(globjects::Texture *input, globjects::Framebuffer *output) {
+	// TODO: two-pass blur
+
+	m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
+	m_screenAlignedQuad->program()->use();
+
+	output->bind();
+	output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
+
+	input->bindActive(GL_TEXTURE0);
+	m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
+
+	m_screenAlignedQuad->draw();
 }
