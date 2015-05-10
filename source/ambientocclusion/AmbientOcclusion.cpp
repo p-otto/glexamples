@@ -167,7 +167,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
 {
     srand(clock());
     std::vector<glm::vec3> kernel(size);
-    int count = 0;
+    int count = 1;
     
     for (auto &vec : kernel)
     {

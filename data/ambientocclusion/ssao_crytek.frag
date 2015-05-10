@@ -18,7 +18,7 @@ uniform vec3 kernel[KERNEL_SIZE];
 
 layout(location = 0) out float occlusion;
 
-const float kernel_radius = 2.0;
+const float kernel_radius = 10.0;
 
 mat3 calcRotatedTbn(vec3 normal) 
 {
