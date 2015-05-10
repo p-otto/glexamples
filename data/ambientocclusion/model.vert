@@ -7,12 +7,14 @@ layout(location = 1) in vec3 a_normal;
 out vec4 v_position;
 out vec3 v_normal;
 
-uniform mat4 transform;
+uniform mat4 u_mvp;
+uniform mat4 u_view;
 
 void main()
 {
-    v_normal = a_normal;
-    vec4 out_pos = transform * vec4(a_vertex, 1.0);
+    v_normal = (u_view * vec4(a_normal, 0.0)).xyz;
+    v_normal = normalize(v_normal);
+    vec4 out_pos = u_mvp * vec4(a_vertex, 1.0);
     v_position = out_pos;
     gl_Position = out_pos;
 }

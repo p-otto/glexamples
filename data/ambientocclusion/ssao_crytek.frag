@@ -18,7 +18,7 @@ uniform vec3 kernel[KERNEL_SIZE];
 
 layout(location = 0) out float occlusion;
 
-const float kernel_radius = 10.0;
+const float kernel_radius = 1.0;
 
 mat3 calcRotatedTbn(vec3 normal) 
 {
@@ -47,8 +47,7 @@ vec3 calcPosition(float depth)
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a * 2.0 - 1.0;
-    vec3 normal = texture(u_normal_depth, v_uv).rgb;
-    normal = normal * 2.0 - vec3(1.0);
+    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
     normal = normalize(normal);
 
     vec3 position = calcPosition(depth);

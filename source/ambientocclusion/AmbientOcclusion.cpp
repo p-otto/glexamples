@@ -172,15 +172,16 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
     for (auto &vec : kernel)
     {
         // TODO: use C++ <random>
-        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
+        do {
+            vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+            vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+            vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
+        } while(glm::dot(vec, glm::vec3(0,0,1)) < 0.1f);
         
         vec = glm::normalize(vec);
         
         float scale = count++ / size;
-        float lerp = scale * scale;
-        scale = 0.1 * (1 - lerp) + 1.0 * lerp;
+        scale = glm::mix(0.3, 1.0, scale * scale);
         vec *= scale;
     }
     
@@ -263,12 +264,14 @@ void AmbientOcclusion::onPaint()
 
     m_modelProgram->use();
     
-    m_modelProgram->setUniform(m_transformLocation, transform);
+    m_modelProgram->setUniform("u_mvp", transform);
+    m_modelProgram->setUniform("u_view", m_cameraCapability->view());
     m_model->draw();
     
     mat4 model;
     model = glm::translate(model, glm::vec3(0.5, 0.0, 1.3));
-    m_modelProgram->setUniform(m_transformLocation, transform * model);
+    m_modelProgram->setUniform("u_view", m_cameraCapability->view());
+    m_modelProgram->setUniform("u_mvp", transform * model);
     m_model->draw();
     
     m_grid->update(eye, transform);
