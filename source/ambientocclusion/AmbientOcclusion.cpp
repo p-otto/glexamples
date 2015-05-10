@@ -42,7 +42,7 @@ AmbientOcclusion::~AmbientOcclusion() = default;
 
 void AmbientOcclusion::setupProjection()
 {
-    static const auto zNear = 0.3f, zFar = 15.f, fovy = 50.f;
+    static const auto zNear = 0.3f, zFar = 50.f, fovy = 50.f;
 
     m_projectionCapability->setZNear(zNear);
     m_projectionCapability->setZFar(zFar);
@@ -167,21 +167,42 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
 {
     srand(clock());
     std::vector<glm::vec3> kernel(size);
+    int count = 0;
     
     for (auto &vec : kernel)
     {
         // TODO: use C++ <random>
         vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
         vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[2] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
         
         vec = glm::normalize(vec);
         
-        // TODO: accelerating interpolation
-        vec *= static_cast<float>(rand() % 1024) / 1024.0f;
+        float scale = count++ / size;
+        float lerp = scale * scale;
+        scale = 0.1 * (1 - lerp) + 1.0 * lerp;
+        vec *= scale;
     }
     
     return kernel;
+}
+
+std::vector<glm::vec3> AmbientOcclusion::getRotationTexture(int size)
+{
+    srand(clock());
+    std::vector<glm::vec3> tex(size * size);
+    
+    for (auto &vec : tex)
+    {
+        // TODO: use C++ <random>
+        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[2] = 0.0f;
+        
+        vec = glm::normalize(vec);
+    }
+    
+    return tex;
 }
 
 void AmbientOcclusion::onInitialize()
@@ -201,6 +222,14 @@ void AmbientOcclusion::onInitialize()
     // some magic numbers that give a good view on the teapot
     m_cameraCapability->setEye(glm::vec3(0.0f, 1.7f, -2.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
+    
+    m_rotationTex = Texture::createDefault(GL_TEXTURE_2D);
+    m_rotationTex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
+    m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
+    m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
+    
+    std::vector<glm::vec3> rotationValues = getRotationTexture(m_rotationTexSize);
+    m_rotationTex->image2D(0, GL_RGB32F, m_rotationTexSize, m_rotationTexSize, 0, GL_RGB, GL_FLOAT, rotationValues.data());
     
     setupFramebuffers();
     setupModel();
@@ -237,8 +266,8 @@ void AmbientOcclusion::onPaint()
     m_model->draw();
     
     mat4 model;
-    model = glm::translate(model, glm::vec3(0.5, 0.0, -1.3));
-    m_modelProgram->setUniform(m_transformLocation, model * transform);
+    model = glm::translate(model, glm::vec3(0.5, 0.0, 1.3));
+    m_modelProgram->setUniform(m_transformLocation, transform * model);
     m_model->draw();
     
     m_grid->update(eye, transform);
@@ -257,10 +286,16 @@ void AmbientOcclusion::onPaint()
     
     m_normalDepthAttachment->bindActive(GL_TEXTURE0);
     m_screenAlignedQuad->program()->setUniform("u_normal_depth", 0);
+    m_rotationTex->bindActive(GL_TEXTURE1);
+    m_screenAlignedQuad->program()->setUniform("u_rotation", 1);
     
     glm::mat4 invProj = glm::inverse(m_projectionCapability->projection());
+    glm::mat4 invView = glm::inverse(m_cameraCapability->view());
     m_screenAlignedQuad->program()->setUniform("u_invProj", invProj);
+    m_screenAlignedQuad->program()->setUniform("u_invView", invView);
     m_screenAlignedQuad->program()->setUniform("u_proj", m_projectionCapability->projection());
+    m_screenAlignedQuad->program()->setUniform("u_resolutionX", m_viewportCapability->width());
+    m_screenAlignedQuad->program()->setUniform("u_resolutionY", m_viewportCapability->height());
     
     static const auto kernel = getCrytekKernel(32);
     glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), kernel.size(), glm::value_ptr(kernel[0]));
@@ -276,20 +311,19 @@ void AmbientOcclusion::onPaint()
     
     m_occlusionAttachment->bindActive(GL_TEXTURE0);
     m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
+    m_normalDepthAttachment->bindActive(GL_TEXTURE1);
+    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 1);
     
     m_screenAlignedQuad->draw();
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
-    
-    auto draw_buffer = GL_COLOR_ATTACHMENT0;
     if (!default_framebuffer) {
         default_framebuffer = globjects::Framebuffer::defaultFBO();
-        draw_buffer = GL_BACK_LEFT;
     }
     
     default_framebuffer->bind(GL_FRAMEBUFFER);
-    default_framebuffer->clear(GL_COLOR_BUFFER_BIT);
+    default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_mixProgram);
     m_screenAlignedQuad->program()->use();

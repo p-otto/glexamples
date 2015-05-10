@@ -44,6 +44,7 @@ public:
     void setupShaders();
     
     std::vector<glm::vec3> getCrytekKernel(int size);
+    std::vector<glm::vec3> getRotationTexture(int size);
 
 protected:
     virtual void onInitialize() override;
@@ -73,11 +74,14 @@ protected:
     globjects::ref_ptr<globjects::Program> m_blurProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
+    globjects::ref_ptr<globjects::Texture> m_rotationTex;
+    
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     globjects::ref_ptr<gloperate::ScreenAlignedQuad> m_screenAlignedQuad;
     
     bool m_multisampling = false;
+    int m_rotationTexSize = 4;
     
     gl::GLint m_transformLocation;
 };

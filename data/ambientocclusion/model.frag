@@ -10,6 +10,6 @@ layout(location = 1) out vec4 normal_depth;
 void main()
 {
     vec3 norm_normal = normalize(v_normal);
-    normal_depth = vec4(norm_normal * 0.5 + 0.5, v_position.z / v_position.w);
+    normal_depth = vec4(norm_normal * 0.5 + 0.5, (v_position.z / v_position.w) * 0.5 + 0.5);
     fragColor = vec4(1.0);
 }
