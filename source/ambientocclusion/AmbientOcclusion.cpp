@@ -144,7 +144,7 @@ void AmbientOcclusion::updateFramebuffers()
     if (m_multisampling)
     {
         m_colorAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
-        m_normalDepthAttachment->image2DMultisample(numSamples, GL_RGB8, width, height, GL_TRUE);
+        m_normalDepthAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
         m_depthBuffer->image2DMultisample(numSamples, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
         
         m_occlusionAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
