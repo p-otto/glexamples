@@ -9,18 +9,18 @@ uniform sampler2D u_occlusion;
 layout(location = 0) out float occlusion;
 
 #define KERNEL_SIZE 2
-#define EPSILON 0.001
+#define EPSILON 0.01
 
 void main()
 {
     float depth_diff_x = texture(u_normal_depth, v_uv - vec2(-EPSILON, 0.0)).a - texture(u_normal_depth, v_uv - vec2(EPSILON, 0.0)).a;
     float depth_diff_y = texture(u_normal_depth, v_uv - vec2(0.0, -EPSILON)).a - texture(u_normal_depth, v_uv - vec2(0.0, EPSILON)).a;
 
-    float diff = sqrt(abs(depth_diff_x) + abs(depth_diff_y));
-    diff = clamp(diff, 0.0, 0.05);
-    diff /= 0.05;
+    float diff = abs(depth_diff_x) + abs(depth_diff_y);
+    diff = clamp(diff / 2.0, 0.0, 0.01);
+    diff /= 0.01;
 
-    float epsilon = mix(0.0001, 0.001, 1 - diff);
+    float epsilon = mix(0.001, 0.0003, diff);
     occlusion = 0.0;
     for (int x = -KERNEL_SIZE; x <= KERNEL_SIZE; ++x)
     {

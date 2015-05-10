@@ -115,8 +115,6 @@ void AmbientOcclusion::setupShaders()
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
     );
     
-    m_transformLocation = m_modelProgram->getUniformLocation("transform");
-    
     m_ambientOcclusionProgram = new Program{};
     m_ambientOcclusionProgram->attach(
                             Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
@@ -181,7 +179,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
         vec = glm::normalize(vec);
         
         float scale = count++ / size;
-        scale = glm::mix(0.3, 1.0, scale * scale);
+        scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -301,7 +299,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->program()->setUniform("u_resolutionX", m_viewportCapability->width());
     m_screenAlignedQuad->program()->setUniform("u_resolutionY", m_viewportCapability->height());
     
-    static const auto kernel = getCrytekKernel(32);
+    static const auto kernel = getCrytekKernel(m_kernelSize);
     glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), kernel.size(), glm::value_ptr(kernel[0]));
     
     m_screenAlignedQuad->draw();
@@ -341,6 +339,8 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Framebuffer *o
 
 	input->bindActive(GL_TEXTURE0);
 	m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
-
+    m_normalDepthAttachment->bindActive(GL_TEXTURE1);
+    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 1);
+    
 	m_screenAlignedQuad->draw();
 }

@@ -84,6 +84,6 @@ protected:
     
     bool m_multisampling = false;
     int m_rotationTexSize = 4;
-    
-    gl::GLint m_transformLocation;
+    int m_kernelSize = 32;
+    float m_minimalKernelLength = 0.1f;
 };
