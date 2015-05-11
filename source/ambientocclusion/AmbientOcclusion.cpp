@@ -142,7 +142,7 @@ void AmbientOcclusion::updateFramebuffers()
     if (m_multisampling)
     {
         m_colorAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
-        m_normalDepthAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
+        m_normalDepthAttachment->image2DMultisample(numSamples, GL_RGBA12, width, height, GL_TRUE);
         m_depthBuffer->image2DMultisample(numSamples, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
         
         m_occlusionAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
@@ -152,7 +152,7 @@ void AmbientOcclusion::updateFramebuffers()
     else
     {
         m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        m_normalDepthAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        m_normalDepthAttachment->image2D(0, GL_RGBA12, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
         
         m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
@@ -174,7 +174,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
             vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
             vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
             vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
-        } while(glm::dot(vec, glm::vec3(0,0,1)) < 0.1f);
+        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_minimalKernelAngle);
         
         vec = glm::normalize(vec);
         

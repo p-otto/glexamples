@@ -86,4 +86,5 @@ protected:
     int m_rotationTexSize = 4;
     int m_kernelSize = 32;
     float m_minimalKernelLength = 0.1f;
+    float m_minimalKernelAngle = 0.1f;
 };
