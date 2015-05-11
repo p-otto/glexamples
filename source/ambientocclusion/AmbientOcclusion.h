@@ -79,6 +79,7 @@ protected:
     globjects::ref_ptr<globjects::Program> m_blurProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
+    std::vector<glm::vec3> m_kernel;
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
@@ -86,6 +87,7 @@ protected:
     globjects::ref_ptr<gloperate::ScreenAlignedQuad> m_screenAlignedQuad;
     
     bool m_multisampling = false;
+    bool m_normalOriented = true;
     int m_rotationTexSize = 4;
     int m_kernelSize = 32;
     float m_minimalKernelLength = 0.1f;

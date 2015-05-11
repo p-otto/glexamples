@@ -20,17 +20,28 @@ layout(location = 0) out float occlusion;
 
 const float kernel_radius = 1.0;
 
+mat3 calcRotatedTbn(vec3 normal) 
+{
+    vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
+    vec3 rvec = texture(u_rotation, v_uv * noise_scale).xyz;
+    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
+    vec3 bitangent = cross(normal, tangent);
+    return mat3(tangent, bitangent, normal);
+}
+
+mat3 calcTbn(vec3 normal) 
+{
+    vec3 rvec = vec3(0, 1, 0);
+    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
+    vec3 bitangent = cross(normal, tangent);
+    return mat3(tangent, bitangent, normal);
+}
+
 vec3 calcPosition(float depth)
 {
     vec2 ndc = v_uv * 2.0 - 1.0;
     vec4 view_pos4 = u_invProj * vec4(ndc.x, ndc.y, depth, 1.0);
     return view_pos4.xyz / view_pos4.w;
-}
-
-vec3 calcReflection()
-{
-    vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
-    return texture(u_rotation, v_uv * noise_scale).xyz;
 }
 
 void main()
@@ -40,14 +51,14 @@ void main()
     normal = normalize(normal);
 
     vec3 position = calcPosition(depth);
-    vec3 reflection_normal = calcReflection();
+    mat3 tbn = calcRotatedTbn(normal);
 
     occlusion = 0.0;
     for (int i = 0; i < KERNEL_SIZE; ++i)
     {
-        vec3 reflected_kernel = reflect(kernel[i], reflection_normal);
+        vec3 rotated_kernel = tbn * kernel[i];
 
-        vec3 view_sample_point = position + reflected_kernel * kernel_radius;
+        vec3 view_sample_point = position + rotated_kernel * kernel_radius;
         vec4 ndc_sample_point = u_proj * vec4(view_sample_point, 1.0);
 
         ndc_sample_point.xyz /= ndc_sample_point.w;

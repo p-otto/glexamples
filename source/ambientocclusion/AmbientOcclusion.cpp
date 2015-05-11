@@ -115,11 +115,20 @@ void AmbientOcclusion::setupShaders()
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
     );
     
-    m_ambientOcclusionProgram = new Program{};
-    m_ambientOcclusionProgram->attach(
-                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
-    );
+    if (m_normalOriented) {
+        m_ambientOcclusionProgram = new Program{};
+        m_ambientOcclusionProgram->attach(
+                                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
+                                          );
+    }
+    else {
+        m_ambientOcclusionProgram = new Program{};
+        m_ambientOcclusionProgram->attach(
+                                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
+                                          );
+    }
     
     m_blurProgram = new Program{};
     m_blurProgram->attach(
@@ -268,7 +277,16 @@ void AmbientOcclusion::onInitialize()
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
     
-    std::vector<glm::vec3> rotationValues = getNormalOrientedRotationTexture(m_rotationTexSize);
+    std::vector<glm::vec3> rotationValues;
+    if (m_normalOriented) {
+        m_kernel = getNormalOrientedKernel(m_kernelSize);
+        rotationValues = getNormalOrientedRotationTexture(m_rotationTexSize);
+    }
+    else {
+        m_kernel = getCrytekKernel(m_kernelSize);
+        rotationValues = getCrytekReflectionTexture(m_rotationTexSize);
+    }
+    
     m_rotationTex->image2D(0, GL_RGB32F, m_rotationTexSize, m_rotationTexSize, 0, GL_RGB, GL_FLOAT, rotationValues.data());
     
     setupFramebuffers();
@@ -340,8 +358,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->program()->setUniform("u_resolutionX", m_viewportCapability->width());
     m_screenAlignedQuad->program()->setUniform("u_resolutionY", m_viewportCapability->height());
     
-    static const auto kernel = getNormalOrientedKernel(m_kernelSize);
-    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), kernel.size(), glm::value_ptr(kernel[0]));
+    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_kernel.size(), glm::value_ptr(m_kernel[0]));
     
     m_screenAlignedQuad->draw();
     
