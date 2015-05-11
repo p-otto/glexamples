@@ -161,7 +161,7 @@ void AmbientOcclusion::updateFramebuffers()
     }
 }
 
-std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
+std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
 {
     srand(clock());
     std::vector<glm::vec3> kernel(size);
@@ -186,7 +186,30 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
     return kernel;
 }
 
-std::vector<glm::vec3> AmbientOcclusion::getRotationTexture(int size)
+std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
+{
+    srand(clock());
+    std::vector<glm::vec3> kernel(size);
+    int count = 1;
+    
+    for (auto &vec : kernel)
+    {
+        // TODO: use C++ <random>
+        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[2] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        
+        vec = glm::normalize(vec);
+        
+        float scale = count++ / size;
+        scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
+        vec *= scale;
+    }
+    
+    return kernel;
+}
+
+std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedRotationTexture(int size)
 {
     srand(clock());
     std::vector<glm::vec3> tex(size * size);
@@ -197,6 +220,24 @@ std::vector<glm::vec3> AmbientOcclusion::getRotationTexture(int size)
         vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
         vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
         vec[2] = 0.0f;
+        
+        vec = glm::normalize(vec);
+    }
+    
+    return tex;
+}
+
+std::vector<glm::vec3> AmbientOcclusion::getCrytekReflectionTexture(int size)
+{
+    srand(clock());
+    std::vector<glm::vec3> tex(size * size);
+    
+    for (auto &vec : tex)
+    {
+        // TODO: use C++ <random>
+        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[2] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
         
         vec = glm::normalize(vec);
     }
@@ -227,7 +268,7 @@ void AmbientOcclusion::onInitialize()
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
     
-    std::vector<glm::vec3> rotationValues = getRotationTexture(m_rotationTexSize);
+    std::vector<glm::vec3> rotationValues = getNormalOrientedRotationTexture(m_rotationTexSize);
     m_rotationTex->image2D(0, GL_RGB32F, m_rotationTexSize, m_rotationTexSize, 0, GL_RGB, GL_FLOAT, rotationValues.data());
     
     setupFramebuffers();
@@ -299,7 +340,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->program()->setUniform("u_resolutionX", m_viewportCapability->width());
     m_screenAlignedQuad->program()->setUniform("u_resolutionY", m_viewportCapability->height());
     
-    static const auto kernel = getCrytekKernel(m_kernelSize);
+    static const auto kernel = getNormalOrientedKernel(m_kernelSize);
     glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), kernel.size(), glm::value_ptr(kernel[0]));
     
     m_screenAlignedQuad->draw();
