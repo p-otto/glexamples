@@ -86,7 +86,6 @@ protected:
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     globjects::ref_ptr<gloperate::ScreenAlignedQuad> m_screenAlignedQuad;
     
-    bool m_multisampling = false;
     bool m_normalOriented = true;
     int m_rotationTexSize = 4;
     int m_kernelSize = 32;

@@ -53,31 +53,13 @@ void AmbientOcclusion::setupProjection()
 
 void AmbientOcclusion::setupFramebuffers()
 {
-    if (m_multisampling)
-    {
-        m_colorAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
-        m_colorAttachment->bind(); // workaround
-        m_normalDepthAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
-        m_normalDepthAttachment->bind();
-        m_depthBuffer = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
-        m_depthBuffer->bind();
-        
-        m_occlusionAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
-        m_occlusionAttachment->bind();
-        
-        m_blurAttachment = new Texture(GL_TEXTURE_2D_MULTISAMPLE);
-        m_blurAttachment->bind();
-    }
-    else
-    {
-        m_colorAttachment = Texture::createDefault(GL_TEXTURE_2D);
-        m_normalDepthAttachment = Texture::createDefault(GL_TEXTURE_2D);
-        m_depthBuffer = Texture::createDefault(GL_TEXTURE_2D);
-        
-        m_occlusionAttachment = Texture::createDefault(GL_TEXTURE_2D);
-        
-        m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
-    }
+    m_colorAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    m_normalDepthAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    m_depthBuffer = Texture::createDefault(GL_TEXTURE_2D);
+    
+    m_occlusionAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    
+    m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
     
     m_modelFbo = make_ref<Framebuffer>();
     m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
@@ -148,26 +130,13 @@ void AmbientOcclusion::updateFramebuffers()
     static const auto numSamples = 4u;
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
     
-    if (m_multisampling)
-    {
-        m_colorAttachment->image2DMultisample(numSamples, GL_RGBA8, width, height, GL_TRUE);
-        m_normalDepthAttachment->image2DMultisample(numSamples, GL_RGBA12, width, height, GL_TRUE);
-        m_depthBuffer->image2DMultisample(numSamples, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
-        
-        m_occlusionAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
-        
-        m_blurAttachment->image2DMultisample(numSamples, GL_R8, width, height, GL_TRUE);
-    }
-    else
-    {
-        m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        m_normalDepthAttachment->image2D(0, GL_RGBA12, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
-        
-        m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-        
-        m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    }
+    m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    m_normalDepthAttachment->image2D(0, GL_RGBA12, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
+    
+    m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    
+    m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 }
 
 std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
