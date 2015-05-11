@@ -156,7 +156,7 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
         
         vec = glm::normalize(vec);
         
-        float scale = count++ / size;
+        float scale = static_cast<float>(count++) / size;
         scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
         vec *= scale;
     }
@@ -179,7 +179,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
         
         vec = glm::normalize(vec);
         
-        float scale = count++ / size;
+        float scale = static_cast<float>(count++) / size;
         scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
         vec *= scale;
     }
