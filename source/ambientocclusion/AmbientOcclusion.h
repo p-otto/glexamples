@@ -71,12 +71,15 @@ protected:
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
     
-    globjects::ref_ptr<globjects::Framebuffer> m_blurFbo;
-    globjects::ref_ptr<globjects::Texture> m_blurAttachment;
+	globjects::ref_ptr<globjects::Framebuffer> m_blurFbo;
+	globjects::ref_ptr<globjects::Framebuffer> m_blurTmpFbo;
+	globjects::ref_ptr<globjects::Texture> m_blurAttachment;
+	globjects::ref_ptr<globjects::Texture> m_blurTmpAttachment;
     
     globjects::ref_ptr<globjects::Program> m_modelProgram;
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgram;
-    globjects::ref_ptr<globjects::Program> m_blurProgram;
+	globjects::ref_ptr<globjects::Program> m_blurXProgram;
+	globjects::ref_ptr<globjects::Program> m_blurYProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
     std::vector<glm::vec3> m_kernel;

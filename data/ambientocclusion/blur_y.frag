@@ -22,12 +22,9 @@ void main()
 
     float epsilon = mix(0.001, 0.0003, diff);
     occlusion = 0.0;
-    for (int x = -KERNEL_SIZE; x <= KERNEL_SIZE; ++x)
+    for (int y = -KERNEL_SIZE; y <= KERNEL_SIZE; ++y)
     {
-        for (int y = -KERNEL_SIZE; y <= KERNEL_SIZE; ++y)
-        {
-            occlusion += texture(u_occlusion, v_uv + vec2(x * epsilon, y * epsilon)).r;
-        }
+        occlusion += texture(u_occlusion, v_uv + vec2(0, y * epsilon)).r;
     }
-    occlusion /= (KERNEL_SIZE * 2 + 1) * (KERNEL_SIZE * 2 + 1);
+    occlusion /= KERNEL_SIZE * 2 + 1;
 }
