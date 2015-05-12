@@ -9,7 +9,6 @@ uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
 uniform mat4 u_invProj;
-uniform mat4 u_invView;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
 
