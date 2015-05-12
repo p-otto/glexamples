@@ -10,6 +10,8 @@
 
 #include <glm/glm.hpp>
 
+class ScreenAlignedQuadRenderer;
+
 namespace globjects
 {
     class Framebuffer;
@@ -82,7 +84,7 @@ protected:
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
-    globjects::ref_ptr<gloperate::ScreenAlignedQuad> m_screenAlignedQuad;
+    std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
     bool m_normalOriented = true;
     int m_rotationTexSize = 4;

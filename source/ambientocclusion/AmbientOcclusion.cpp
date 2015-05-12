@@ -1,5 +1,7 @@
 #include "AmbientOcclusion.h"
 
+#include "ScreenAlignedQuadRenderer.h"
+
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -41,6 +43,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
+,   m_screenAlignedQuad(new ScreenAlignedQuadRenderer())
 {
 }
 
@@ -313,23 +316,22 @@ void AmbientOcclusion::onPaint()
     glDisable(GL_DEPTH_TEST);
     
     // calculate ambient occlusion
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_ambientOcclusionProgram);
+    m_screenAlignedQuad->setProgram(m_ambientOcclusionProgram);
     
     m_occlusionFbo->bind();
     m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
     
-    m_normalDepthAttachment->bindActive(GL_TEXTURE0);
-    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 0);
-    m_rotationTex->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_rotation", 1);
+    m_screenAlignedQuad->setTextures({
+        {"u_normal_depth", m_normalDepthAttachment},
+        {"u_rotation", m_rotationTex}
+    });
     
-    glm::mat4 invProj = glm::inverse(m_projectionCapability->projection());
-    glm::mat4 invView = glm::inverse(m_cameraCapability->view());
-    m_screenAlignedQuad->program()->setUniform("u_invProj", invProj);
-    m_screenAlignedQuad->program()->setUniform("u_invView", invView);
-    m_screenAlignedQuad->program()->setUniform("u_proj", m_projectionCapability->projection());
-    m_screenAlignedQuad->program()->setUniform("u_resolutionX", m_viewportCapability->width());
-    m_screenAlignedQuad->program()->setUniform("u_resolutionY", m_viewportCapability->height());
+    m_screenAlignedQuad->setUniforms(
+        "u_invProj", glm::inverse(m_projectionCapability->projection()),
+        "u_proj", m_projectionCapability->projection(),
+        "u_resolutionX", m_viewportCapability->width(),
+        "u_resolutionY", m_viewportCapability->height()
+    );
     
     glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_kernel.size(), glm::value_ptr(m_kernel[0]));
     
@@ -347,29 +349,28 @@ void AmbientOcclusion::onPaint()
     default_framebuffer->bind(GL_FRAMEBUFFER);
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_mixProgram);
+    m_screenAlignedQuad->setProgram(m_mixProgram);
     
-    m_colorAttachment->bindActive(GL_TEXTURE0);
-    m_screenAlignedQuad->program()->setUniform("u_color", 0);
-    m_blurAttachment->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_blur", 1);
+    m_screenAlignedQuad->setTextures({
+        {"u_color", m_colorAttachment},
+        {"u_blur", m_blurAttachment}
+    });
     
     m_screenAlignedQuad->draw();
 }
 
-
 void AmbientOcclusion::blur(globjects::Texture *input, globjects::Framebuffer *output) {
 	// TODO: two-pass blur
 
-	m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurProgram);
-
+    m_screenAlignedQuad->setProgram(m_blurProgram);
+    
 	output->bind();
 	output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
 
-	input->bindActive(GL_TEXTURE0);
-	m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
-    m_normalDepthAttachment->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 1);
+    m_screenAlignedQuad->setTextures({
+        {"u_occlusion", input},
+        {"u_normal_depth", m_normalDepthAttachment}
+    });
     
 	m_screenAlignedQuad->draw();
 }
