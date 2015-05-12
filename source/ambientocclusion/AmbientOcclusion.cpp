@@ -13,6 +13,7 @@
 #include <globjects/DebugMessage.h>
 #include <globjects/Program.h>
 #include <globjects/Texture.h>
+#include <globjects/Framebuffer.h>
 
 #include <gloperate/base/RenderTargetType.h>
 
@@ -22,7 +23,12 @@
 #include <gloperate/painter/CameraCapability.h>
 #include <gloperate/painter/VirtualTimeCapability.h>
 
+#include <gloperate/primitives/PolygonalDrawable.h>
+#include <gloperate/primitives/ScreenAlignedQuad.h>
 #include <gloperate/primitives/AdaptiveGrid.h>
+
+#include <gloperate-assimp/AssimpMeshLoader.h>
+
 #include <gloperate/base/make_unique.hpp>
 
 using namespace gl;
@@ -82,7 +88,7 @@ void AmbientOcclusion::setupFramebuffers()
 void AmbientOcclusion::setupModel()
 {
     const auto meshLoader = gloperate_assimp::AssimpMeshLoader{};
-    const auto scene = meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
+    const auto scene = meshLoader.load("data/ambientocclusion/dragon.obj", nullptr);
     m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*scene);
     
     m_grid = make_ref<gloperate::AdaptiveGrid>();
@@ -127,7 +133,6 @@ void AmbientOcclusion::setupShaders()
 
 void AmbientOcclusion::updateFramebuffers()
 {
-    static const auto numSamples = 4u;
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
     
     m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -238,7 +243,7 @@ void AmbientOcclusion::onInitialize()
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
 
     // some magic numbers that give a good view on the teapot
-    m_cameraCapability->setEye(glm::vec3(0.0f, 1.7f, -2.0f));
+    m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
     
     m_rotationTex = Texture::createDefault(GL_TEXTURE_2D);

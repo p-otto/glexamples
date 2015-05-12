@@ -5,14 +5,10 @@
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
-#include <globjects/Framebuffer.h>
 
 #include <gloperate/painter/Painter.h>
 
-#include <gloperate/primitives/PolygonalDrawable.h>
-#include <gloperate/primitives/ScreenAlignedQuad.h>
-
-#include <gloperate-assimp/AssimpMeshLoader.h>
+#include <glm/glm.hpp>
 
 namespace globjects
 {
@@ -29,6 +25,8 @@ namespace gloperate
     class AbstractViewportCapability;
     class AbstractPerspectiveProjectionCapability;
     class AbstractCameraCapability;
+    class PolygonalDrawable;
+    class ScreenAlignedQuad;
 }
 
 class AmbientOcclusion : public gloperate::Painter
