@@ -26,7 +26,6 @@
 #include <gloperate/painter/VirtualTimeCapability.h>
 
 #include <gloperate/primitives/PolygonalDrawable.h>
-#include <gloperate/primitives/ScreenAlignedQuad.h>
 #include <gloperate/primitives/AdaptiveGrid.h>
 
 #include <gloperate-assimp/AssimpMeshLoader.h>
