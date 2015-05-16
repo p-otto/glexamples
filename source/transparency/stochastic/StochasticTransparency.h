@@ -27,9 +27,9 @@ namespace gloperate
     class AbstractPerspectiveProjectionCapability;
     class AbstractCameraCapability;
     class ScreenAlignedQuad;
+    class PolygonalDrawable;
 }
 
-class PolygonalDrawable;
 class StochasticTransparencyOptions;
 
 class StochasticTransparency : public gloperate::Painter
@@ -107,7 +107,7 @@ private:
     /** \{ */
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    std::vector<std::unique_ptr<PolygonalDrawable>> m_drawables;
+    std::vector<std::unique_ptr<gloperate::PolygonalDrawable>> m_drawables;
     globjects::ref_ptr<gloperate::ScreenAlignedQuad> m_compositingQuad;
     
     /** \} */

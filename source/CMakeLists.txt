@@ -24,6 +24,7 @@ include_directories(
     ${LIBZEUG_INCLUDES}
 )
 
+# Define common libraries for all examples
 set(GLEXAMPLES_DEPENDENCY_LIBRARIES
     ${GLBINDING_LIBRARIES}
     ${GLOBJECTS_LIBRARIES}

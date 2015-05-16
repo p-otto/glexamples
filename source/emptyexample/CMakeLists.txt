@@ -1,4 +1,5 @@
 
+# Target
 set(target emptyexample-painters)
 message(STATUS "Example ${target}")
 
@@ -6,6 +7,7 @@ message(STATUS "Example ${target}")
 # External libraries
 
 # ...
+
 
 # Includes
 
@@ -23,8 +25,6 @@ set(libs
 
 
 # Compiler definitions
-
-
 
 # for compatibility between glm 0.9.4 and 0.9.5
 add_definitions("-DGLM_FORCE_RADIANS")
