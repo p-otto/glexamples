@@ -47,7 +47,7 @@ void ScreenAlignedQuadRenderer::draw()
 
 void ScreenAlignedQuadRenderer::setTextures(const std::vector<std::pair<std::string, globjects::Texture*>> &stringTexturePair)
 {
-    for (unsigned int i = 0; i < stringTexturePair.size(); ++i)
+    for (int i = 0; i < stringTexturePair.size(); ++i)
     {
         auto &pair = stringTexturePair.at(i);
         pair.second->bindActive(gl::GL_TEXTURE0 + i);
