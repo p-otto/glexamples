@@ -42,7 +42,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
-,   m_screenAlignedQuad(new ScreenAlignedQuadRenderer())
+,   m_screenAlignedQuad(nullptr)
 {
 }
 
@@ -243,6 +243,8 @@ void AmbientOcclusion::onInitialize()
 #endif
 
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
+
+	m_screenAlignedQuad = gloperate::make_unique<ScreenAlignedQuadRenderer>();
 
     // some magic numbers that give a good view on the teapot
     m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
