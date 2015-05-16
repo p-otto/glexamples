@@ -3,18 +3,19 @@
 #include <globjects/VertexArray.h>
 #include <globjects/VertexAttributeBinding.h>
 #include <globjects/Buffer.h>
-
-#include <gloperate/primitives/ScreenAlignedQuad.h>
+#include <globjects/Texture.h>
 
 #include <glbinding/gl/enum.h>
+
+#include <glm/glm.hpp>
 
 ScreenAlignedQuadRenderer::ScreenAlignedQuadRenderer()
 {
     static const std::array<glm::vec2, 4> raw{{
-        glm::vec2( +1.f, -1.f )
-        ,   glm::vec2( +1.f, +1.f )
-        ,   glm::vec2( -1.f, -1.f )
-        ,   glm::vec2( -1.f, +1.f )
+        glm::vec2( +1.f, -1.f ),
+        glm::vec2( +1.f, +1.f ),
+        glm::vec2( -1.f, -1.f ),
+        glm::vec2( -1.f, +1.f )
     }};
     
     m_vao = new globjects::VertexArray();

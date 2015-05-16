@@ -14,10 +14,6 @@ namespace globjects {
     class Buffer;
 }
 
-namespace gloperate {
-    class ScreenAlignedQuad;
-}
-
 class ScreenAlignedQuadRenderer
 {
 public:
