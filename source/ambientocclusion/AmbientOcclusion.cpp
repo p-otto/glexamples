@@ -1,6 +1,7 @@
 #include "AmbientOcclusion.h"
 
 #include "ScreenAlignedQuadRenderer.h"
+#include "AmbientOcclusionOptions.h"
 
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -42,7 +43,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
-,   m_screenAlignedQuad(nullptr)
+,   m_options(new AmbientOcclusionOptions(*this))
 {
 }
 
@@ -105,20 +106,17 @@ void AmbientOcclusion::setupShaders()
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
     );
     
-    if (m_normalOriented) {
-        m_ambientOcclusionProgram = new Program{};
-        m_ambientOcclusionProgram->attach(
-                                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
-                                          );
-    }
-    else {
-        m_ambientOcclusionProgram = new Program{};
-        m_ambientOcclusionProgram->attach(
-                                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
-                                          );
-    }
+    m_ambientOcclusionProgramNormalOriented = new Program{};
+    m_ambientOcclusionProgramNormalOriented->attach(
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
+    );
+        
+    m_ambientOcclusionProgramCrytek = new Program{};
+    m_ambientOcclusionProgramCrytek->attach(
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
+    );
     
     m_blurProgram = new Program{};
     m_blurProgram->attach(
@@ -159,12 +157,12 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
             vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
             vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
             vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
-        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_minimalKernelAngle);
+        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_options->minimalKernelAngle());
         
         vec = glm::normalize(vec);
         
         float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
+        scale = glm::mix(m_options->minimalKernelLength(), 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -187,7 +185,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
         vec = glm::normalize(vec);
         
         float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
+        scale = glm::mix(m_options->minimalKernelLength(), 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -255,17 +253,18 @@ void AmbientOcclusion::onInitialize()
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
     
+    // TODO: refactor rotation texture generation into function, so it can be called when texture size changes
     std::vector<glm::vec3> rotationValues;
-    if (m_normalOriented) {
-        m_kernel = getNormalOrientedKernel(m_kernelSize);
-        rotationValues = getNormalOrientedRotationTexture(m_rotationTexSize);
+    if (m_options->normalOriented()) {
+        m_kernel = getNormalOrientedKernel(m_options->maxKernelSize());
+        rotationValues = getNormalOrientedRotationTexture(m_options->rotationTexSize());
     }
     else {
-        m_kernel = getCrytekKernel(m_kernelSize);
-        rotationValues = getCrytekReflectionTexture(m_rotationTexSize);
+        m_kernel = getCrytekKernel(m_options->maxKernelSize());
+        rotationValues = getCrytekReflectionTexture(m_options->rotationTexSize());
     }
     
-    m_rotationTex->image2D(0, GL_RGB32F, m_rotationTexSize, m_rotationTexSize, 0, GL_RGB, GL_FLOAT, rotationValues.data());
+    m_rotationTex->image2D(0, GL_RGB32F, m_options->rotationTexSize(), m_options->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
     
     setupFramebuffers();
     setupModel();
@@ -317,7 +316,14 @@ void AmbientOcclusion::onPaint()
     glDisable(GL_DEPTH_TEST);
     
     // calculate ambient occlusion
-    m_screenAlignedQuad->setProgram(m_ambientOcclusionProgram);
+    if (m_options->normalOriented())
+    {
+        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramNormalOriented);
+    }
+    else
+    {
+        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramCrytek);
+    }
     
     m_occlusionFbo->bind();
     m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
@@ -331,10 +337,12 @@ void AmbientOcclusion::onPaint()
         "u_invProj", glm::inverse(m_projectionCapability->projection()),
         "u_proj", m_projectionCapability->projection(),
         "u_resolutionX", m_viewportCapability->width(),
-        "u_resolutionY", m_viewportCapability->height()
+        "u_resolutionY", m_viewportCapability->height(),
+        "u_kernelSize", m_options->kernelSize(),
+        "u_kernelRadius", m_options->kernelRadius()
     );
     
-    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_kernel.size(), glm::value_ptr(m_kernel[0]));
+    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_options->kernelSize(), glm::value_ptr(m_kernel[0]));
     
     m_screenAlignedQuad->draw();
     

@@ -11,13 +11,13 @@ uniform mat4 u_proj;
 uniform mat4 u_invProj;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
+uniform float u_kernelRadius;
+uniform int u_kernelSize;
 
-#define KERNEL_SIZE 32
-uniform vec3 kernel[KERNEL_SIZE];
+#define MAX_KERNEL_SIZE 128
+uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out float occlusion;
-
-const float kernel_radius = 1.0;
 
 mat3 calcRotatedTbn(vec3 normal) 
 {
@@ -53,11 +53,11 @@ void main()
     mat3 tbn = calcRotatedTbn(normal);
 
     occlusion = 0.0;
-    for (int i = 0; i < KERNEL_SIZE; ++i)
+    for (int i = 0; i < u_kernelSize; ++i)
     {
         vec3 rotated_kernel = tbn * kernel[i];
 
-        vec3 view_sample_point = position + rotated_kernel * kernel_radius;
+        vec3 view_sample_point = position + rotated_kernel * u_kernelRadius;
         vec4 ndc_sample_point = u_proj * vec4(view_sample_point, 1.0);
 
         ndc_sample_point.xyz /= ndc_sample_point.w;
@@ -71,7 +71,7 @@ void main()
         }
     }
 
-    occlusion /= KERNEL_SIZE;
+    occlusion /= u_kernelSize;
 
     if (depth > 0.99) {
         occlusion = 0.0;

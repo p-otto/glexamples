@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 
 class ScreenAlignedQuadRenderer;
+class AmbientOcclusionOptions;
 
 namespace globjects
 {
@@ -75,7 +76,8 @@ protected:
     globjects::ref_ptr<globjects::Texture> m_blurAttachment;
     
     globjects::ref_ptr<globjects::Program> m_modelProgram;
-    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgram;
+    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramNormalOriented;
+    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramCrytek;
     globjects::ref_ptr<globjects::Program> m_blurProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
@@ -86,9 +88,5 @@ protected:
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
-    bool m_normalOriented = true;
-    int m_rotationTexSize = 4;
-    int m_kernelSize = 32;
-    float m_minimalKernelLength = 0.1f;
-    float m_minimalKernelAngle = 0.1f;
+    std::unique_ptr<AmbientOcclusionOptions> m_options;
 };
