@@ -89,6 +89,8 @@ void AmbientOcclusion::setupFramebuffers()
     
     m_modelFbo->printStatus(true);
     m_occlusionFbo->printStatus(true);
+    m_blurFbo->printStatus(true);
+    m_blurTmpFbo->printStatus(true);
 }
 
 void AmbientOcclusion::setupModel()
