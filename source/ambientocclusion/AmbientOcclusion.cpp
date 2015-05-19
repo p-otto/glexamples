@@ -51,7 +51,7 @@ AmbientOcclusion::~AmbientOcclusion() = default;
 
 void AmbientOcclusion::setupProjection()
 {
-    static const auto zNear = 0.3f, zFar = 50.f, fovy = 50.f;
+    static const auto zNear = 0.3f, zFar = 150.f, fovy = 50.f;
 
     m_projectionCapability->setZNear(zNear);
     m_projectionCapability->setZFar(zFar);
@@ -311,12 +311,6 @@ void AmbientOcclusion::onPaint()
     
     m_modelProgram->setUniform("u_mvp", transform);
     m_modelProgram->setUniform("u_view", m_cameraCapability->view());
-    m_model->draw();
-    
-    mat4 model;
-    model = glm::translate(model, glm::vec3(0.5, 0.0, 1.3));
-    m_modelProgram->setUniform("u_view", m_cameraCapability->view());
-    m_modelProgram->setUniform("u_mvp", transform * model);
     m_model->draw();
     
     m_grid->update(eye, transform);
