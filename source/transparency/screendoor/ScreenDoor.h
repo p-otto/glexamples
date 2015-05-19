@@ -26,9 +26,9 @@ namespace gloperate
     class AbstractViewportCapability;
     class AbstractPerspectiveProjectionCapability;
     class AbstractCameraCapability;
+    class PolygonalDrawable;
 }
 
-class PolygonalDrawable;
 
 class ScreenDoor : public gloperate::Painter
 {
@@ -72,7 +72,7 @@ protected:
     globjects::ref_ptr<globjects::Program> m_program;
     gl::GLint m_transformLocation;
     gl::GLint m_transparencyLocation;
-    std::vector<std::unique_ptr<PolygonalDrawable>> m_drawables;
+    std::vector<std::unique_ptr<gloperate::PolygonalDrawable>> m_drawables;
 
     bool m_multisampling;
     bool m_multisamplingChanged;

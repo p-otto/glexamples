@@ -1,5 +1,8 @@
 #include "AmbientOcclusion.h"
 
+#include "ScreenAlignedQuadRenderer.h"
+#include "AmbientOcclusionOptions.h"
+
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -13,6 +16,7 @@
 #include <globjects/DebugMessage.h>
 #include <globjects/Program.h>
 #include <globjects/Texture.h>
+#include <globjects/Framebuffer.h>
 
 #include <gloperate/base/RenderTargetType.h>
 
@@ -22,7 +26,11 @@
 #include <gloperate/painter/CameraCapability.h>
 #include <gloperate/painter/VirtualTimeCapability.h>
 
+#include <gloperate/primitives/PolygonalDrawable.h>
 #include <gloperate/primitives/AdaptiveGrid.h>
+
+#include <gloperate-assimp/AssimpMeshLoader.h>
+
 #include <gloperate/base/make_unique.hpp>
 
 using namespace gl;
@@ -35,6 +43,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
+,   m_options(new AmbientOcclusionOptions(*this))
 {
 }
 
@@ -59,8 +68,8 @@ void AmbientOcclusion::setupFramebuffers()
     
     m_occlusionAttachment = Texture::createDefault(GL_TEXTURE_2D);
     
-	m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
-	m_blurTmpAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    m_blurTmpAttachment = Texture::createDefault(GL_TEXTURE_2D);
     
     m_modelFbo = make_ref<Framebuffer>();
     m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
@@ -72,9 +81,9 @@ void AmbientOcclusion::setupFramebuffers()
     m_occlusionFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_occlusionAttachment);
     
     m_blurFbo = make_ref<Framebuffer>();
-	m_blurFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurAttachment);
-	m_blurTmpFbo = make_ref<Framebuffer>();
-	m_blurTmpFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurTmpAttachment);
+    m_blurFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurAttachment);
+    m_blurTmpFbo = make_ref<Framebuffer>();
+    m_blurTmpFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurTmpAttachment);
     
     updateFramebuffers();
     
@@ -85,7 +94,7 @@ void AmbientOcclusion::setupFramebuffers()
 void AmbientOcclusion::setupModel()
 {
     const auto meshLoader = gloperate_assimp::AssimpMeshLoader{};
-    const auto scene = meshLoader.load("data/ambientocclusion/teapot.obj", nullptr);
+    const auto scene = meshLoader.load("data/ambientocclusion/dragon.obj", nullptr);
     m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*scene);
     
     m_grid = make_ref<gloperate::AdaptiveGrid>();
@@ -100,31 +109,28 @@ void AmbientOcclusion::setupShaders()
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
     );
     
-    if (m_normalOriented) {
-        m_ambientOcclusionProgram = new Program{};
-        m_ambientOcclusionProgram->attach(
-                                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
-                                          );
-    }
-    else {
-        m_ambientOcclusionProgram = new Program{};
-        m_ambientOcclusionProgram->attach(
-                                          Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                                          Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
-                                          );
-    }
+    m_ambientOcclusionProgramNormalOriented = new Program{};
+    m_ambientOcclusionProgramNormalOriented->attach(
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
+    );
+        
+    m_ambientOcclusionProgramCrytek = new Program{};
+    m_ambientOcclusionProgramCrytek->attach(
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
+    );
     
     m_blurXProgram = new Program{};
     m_blurXProgram->attach(
                             Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
                             Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_x.frag")
     );
-	m_blurYProgram = new Program{};
-	m_blurYProgram->attach(
-		Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-		Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_y.frag")
-		);
+    m_blurYProgram = new Program{};
+    m_blurYProgram->attach(
+        Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_y.frag")
+        );
     
     m_mixProgram = new Program{};
     m_mixProgram->attach(
@@ -135,7 +141,6 @@ void AmbientOcclusion::setupShaders()
 
 void AmbientOcclusion::updateFramebuffers()
 {
-    static const auto numSamples = 4u;
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
     
     m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -144,8 +149,8 @@ void AmbientOcclusion::updateFramebuffers()
     
     m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     
-	m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-	m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 }
 
 std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
@@ -161,12 +166,12 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
             vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
             vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
             vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
-        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_minimalKernelAngle);
+        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_options->minimalKernelAngle());
         
         vec = glm::normalize(vec);
         
         float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
+        scale = glm::mix(m_options->minimalKernelLength(), 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -189,7 +194,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
         vec = glm::normalize(vec);
         
         float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_minimalKernelLength, 1.0f, scale * scale);
+        scale = glm::mix(m_options->minimalKernelLength(), 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -246,8 +251,10 @@ void AmbientOcclusion::onInitialize()
 
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
 
+    m_screenAlignedQuad = gloperate::make_unique<ScreenAlignedQuadRenderer>();
+
     // some magic numbers that give a good view on the teapot
-    m_cameraCapability->setEye(glm::vec3(0.0f, 1.7f, -2.0f));
+    m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
     
     m_rotationTex = Texture::createDefault(GL_TEXTURE_2D);
@@ -255,17 +262,18 @@ void AmbientOcclusion::onInitialize()
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
     m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
     
+    // TODO: refactor rotation texture generation into function, so it can be called when texture size changes
     std::vector<glm::vec3> rotationValues;
-    if (m_normalOriented) {
-        m_kernel = getNormalOrientedKernel(m_kernelSize);
-        rotationValues = getNormalOrientedRotationTexture(m_rotationTexSize);
+    if (m_options->normalOriented()) {
+        m_kernel = getNormalOrientedKernel(m_options->maxKernelSize());
+        rotationValues = getNormalOrientedRotationTexture(m_options->rotationTexSize());
     }
     else {
-        m_kernel = getCrytekKernel(m_kernelSize);
-        rotationValues = getCrytekReflectionTexture(m_rotationTexSize);
+        m_kernel = getCrytekKernel(m_options->maxKernelSize());
+        rotationValues = getCrytekReflectionTexture(m_options->rotationTexSize());
     }
     
-    m_rotationTex->image2D(0, GL_RGB32F, m_rotationTexSize, m_rotationTexSize, 0, GL_RGB, GL_FLOAT, rotationValues.data());
+    m_rotationTex->image2D(0, GL_RGB32F, m_options->rotationTexSize(), m_options->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
     
     setupFramebuffers();
     setupModel();
@@ -284,7 +292,7 @@ void AmbientOcclusion::onPaint()
             m_viewportCapability->height());
 
         m_viewportCapability->setChanged(false);
-		updateFramebuffers();
+        updateFramebuffers();
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -317,30 +325,38 @@ void AmbientOcclusion::onPaint()
     glDisable(GL_DEPTH_TEST);
     
     // calculate ambient occlusion
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_ambientOcclusionProgram);
+    if (m_options->normalOriented())
+    {
+        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramNormalOriented);
+    }
+    else
+    {
+        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramCrytek);
+    }
     
     m_occlusionFbo->bind();
     m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
     
-    m_normalDepthAttachment->bindActive(GL_TEXTURE0);
-    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 0);
-    m_rotationTex->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_rotation", 1);
+    m_screenAlignedQuad->setTextures({
+        {"u_normal_depth", m_normalDepthAttachment},
+        {"u_rotation", m_rotationTex}
+    });
     
-    glm::mat4 invProj = glm::inverse(m_projectionCapability->projection());
-    glm::mat4 invView = glm::inverse(m_cameraCapability->view());
-    m_screenAlignedQuad->program()->setUniform("u_invProj", invProj);
-    m_screenAlignedQuad->program()->setUniform("u_invView", invView);
-    m_screenAlignedQuad->program()->setUniform("u_proj", m_projectionCapability->projection());
-    m_screenAlignedQuad->program()->setUniform("u_resolutionX", m_viewportCapability->width());
-    m_screenAlignedQuad->program()->setUniform("u_resolutionY", m_viewportCapability->height());
+    m_screenAlignedQuad->setUniforms(
+        "u_invProj", glm::inverse(m_projectionCapability->projection()),
+        "u_proj", m_projectionCapability->projection(),
+        "u_resolutionX", m_viewportCapability->width(),
+        "u_resolutionY", m_viewportCapability->height(),
+        "u_kernelSize", m_options->kernelSize(),
+        "u_kernelRadius", m_options->kernelRadius()
+    );
     
-    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_kernel.size(), glm::value_ptr(m_kernel[0]));
+    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_options->kernelSize(), glm::value_ptr(m_kernel[0]));
     
     m_screenAlignedQuad->draw();
     
     // blur ambient occlusion texture
-	blur(m_occlusionAttachment, m_blurFbo);
+    blur(m_occlusionAttachment, m_blurFbo);
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
@@ -351,41 +367,35 @@ void AmbientOcclusion::onPaint()
     default_framebuffer->bind(GL_FRAMEBUFFER);
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_mixProgram);
+    m_screenAlignedQuad->setProgram(m_mixProgram);
     
-    m_colorAttachment->bindActive(GL_TEXTURE0);
-    m_screenAlignedQuad->program()->setUniform("u_color", 0);
-    m_blurAttachment->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_blur", 1);
+    m_screenAlignedQuad->setTextures({
+        {"u_color", m_colorAttachment},
+        {"u_blur", m_blurAttachment}
+    });
     
     m_screenAlignedQuad->draw();
 }
 
-
 void AmbientOcclusion::blur(globjects::Texture *input, globjects::Framebuffer *output) {
-	// TODO: two-pass blur
 
-	m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurXProgram);
+    m_blurTmpFbo->bind();
+    m_blurTmpFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
 
-	m_blurTmpFbo->bind();
-	m_blurTmpFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
+    m_screenAlignedQuad->setProgram(m_blurXProgram);
+    m_screenAlignedQuad->setTextures({
+        { "u_occlusion", input },
+        { "u_normal_depth", m_normalDepthAttachment }
+    });
+    m_screenAlignedQuad->draw();
 
-	input->bindActive(GL_TEXTURE0);
-	m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
-	m_normalDepthAttachment->bindActive(GL_TEXTURE1);
-	m_screenAlignedQuad->program()->setUniform("u_normal_depth", 1);
+    output->bind();
+    output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
 
-	m_screenAlignedQuad->draw();
-
-	m_screenAlignedQuad = new gloperate::ScreenAlignedQuad(m_blurYProgram);
-
-	output->bind();
-	output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
-
-	m_blurTmpAttachment->bindActive(GL_TEXTURE0);
-	m_screenAlignedQuad->program()->setUniform("u_occlusion", 0);
-    m_normalDepthAttachment->bindActive(GL_TEXTURE1);
-    m_screenAlignedQuad->program()->setUniform("u_normal_depth", 1);
-    
-	m_screenAlignedQuad->draw();
+    m_screenAlignedQuad->setProgram(m_blurYProgram);
+    m_screenAlignedQuad->setTextures({
+        { "u_occlusion", m_blurTmpAttachment },
+        { "u_normal_depth", m_normalDepthAttachment }
+    });
+    m_screenAlignedQuad->draw();
 }

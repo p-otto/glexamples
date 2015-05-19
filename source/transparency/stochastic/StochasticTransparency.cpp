@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-#include <assimp/cimport.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>
@@ -21,25 +19,23 @@
 
 #include <gloperate/base/RenderTargetType.h>
 #include <gloperate/base/make_unique.hpp>
-
+#include <gloperate/resources/ResourceManager.h>
 #include <gloperate/painter/TargetFramebufferCapability.h>
 #include <gloperate/painter/ViewportCapability.h>
 #include <gloperate/painter/PerspectiveProjectionCapability.h>
 #include <gloperate/painter/CameraCapability.h>
-
 #include <gloperate/primitives/AdaptiveGrid.h>
 #include <gloperate/primitives/ScreenAlignedQuad.h>
+#include <gloperate/primitives/Scene.h>
+
+#include <gloperate/primitives/PolygonalDrawable.h>
+#include <gloperate/primitives/PolygonalGeometry.h>
 
 #include <reflectionzeug/PropertyGroup.h>
 #include <widgetzeug/make_unique.hpp>
 
 #include "MasksTableGenerator.h"
 #include "StochasticTransparencyOptions.h"
-
-#include "../AssimpLoader.h"
-#include "../AssimpProcessing.h"
-#include "../PolygonalDrawable.h"
-#include "../PolygonalGeometry.h"
 
 
 using namespace gl;
@@ -167,21 +163,21 @@ void StochasticTransparency::setupProjection()
 
 void StochasticTransparency::setupDrawable()
 {
-    auto assimpLoader = AssimpLoader{};
-    const auto scene = assimpLoader.load("data/transparency/transparency_scene.obj", {});
-
+    // Load scene
+    const auto scene = m_resourceManager.load<gloperate::Scene>("data/transparency/transparency_scene.obj");
     if (!scene)
     {
         std::cout << "Could not load file" << std::endl;
         return;
     }
 
-    const auto geometries = AssimpProcessing::convertToGeometries(scene);
+    // Create a renderable for each mesh
+    for (const auto * geometry : scene->meshes()) {
+        m_drawables.push_back(gloperate::make_unique<gloperate::PolygonalDrawable>(*geometry));
+    }
 
-    aiReleaseImport(scene);
-    
-    for (const auto & geometry : geometries)
-        m_drawables.push_back(gloperate::make_unique<PolygonalDrawable>(geometry));
+    // Release scene
+    delete scene;
 }
 
 void StochasticTransparency::setupPrograms()

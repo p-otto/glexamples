@@ -1,23 +1,18 @@
 
+# Target
 set(target transparency-painters)
+message(STATUS "Example ${target}")
 
 
 # External libraries
 
-find_package(ASSIMP QUIET)
+# ...
 
-if (NOT ASSIMP_FOUND)
-	message("Example ${target} skipped: ASSIMP not found")
-	return()
-endif()
-
-message(STATUS "Example ${target}")
 
 # Includes
 
 include_directories(
     BEFORE
-    ${ASSIMP_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -26,13 +21,10 @@ include_directories(
 
 set(libs
     ${GLEXAMPLES_DEPENDENCY_LIBRARIES}
-    ${ASSIMP_LIBRARIES}
 )
 
 
 # Compiler definitions
-
-
 
 # for compatibility between glm 0.9.4 and 0.9.5
 add_definitions("-DGLM_FORCE_RADIANS")
@@ -44,10 +36,6 @@ set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/")
 set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(sources
-    ${source_path}/AssimpLoader.cpp
-    ${source_path}/AssimpProcessing.cpp
-    ${source_path}/PolygonalDrawable.cpp
-    ${source_path}/PolygonalGeometry.cpp
     ${source_path}/plugin.cpp
     ${source_path}/screendoor/ScreenDoor.cpp
     ${source_path}/stochastic/StochasticTransparency.cpp
@@ -56,10 +44,6 @@ set(sources
 )
 
 set(api_includes
-    ${include_path}/AssimpLoader.h
-    ${include_path}/AssimpProcessing.h
-    ${include_path}/PolygonalDrawable.h
-    ${include_path}/PolygonalGeometry.h
     ${include_path}/screendoor/ScreenDoor.h
     ${include_path}/stochastic/StochasticTransparency.h
     ${include_path}/stochastic/StochasticTransparencyOptions.h
