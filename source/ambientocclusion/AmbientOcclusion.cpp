@@ -356,7 +356,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->draw();
     
     // blur ambient occlusion texture
-    blur(m_occlusionAttachment, m_blurFbo);
+    blur(m_occlusionAttachment, m_normalDepthAttachment, m_blurFbo);
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
@@ -377,25 +377,27 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->draw();
 }
 
-void AmbientOcclusion::blur(globjects::Texture *input, globjects::Framebuffer *output) {
+void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output) {
 
+    // pass 1 (x)
     m_blurTmpFbo->bind();
     m_blurTmpFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
 
     m_screenAlignedQuad->setProgram(m_blurXProgram);
     m_screenAlignedQuad->setTextures({
         { "u_occlusion", input },
-        { "u_normal_depth", m_normalDepthAttachment }
+        { "u_normal_depth", normals }
     });
     m_screenAlignedQuad->draw();
 
+    // pass 2 (y)
     output->bind();
     output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
 
     m_screenAlignedQuad->setProgram(m_blurYProgram);
     m_screenAlignedQuad->setTextures({
         { "u_occlusion", m_blurTmpAttachment },
-        { "u_normal_depth", m_normalDepthAttachment }
+        { "u_normal_depth", normals }
     });
     m_screenAlignedQuad->draw();
 }
