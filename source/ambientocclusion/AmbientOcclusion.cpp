@@ -299,7 +299,7 @@ void AmbientOcclusion::onInitialize()
 
 void AmbientOcclusion::onPaint()
 {
-    if (m_viewportCapability->hasChanged())
+    if (m_viewportCapability->hasChanged() || m_options->hasResolutionChanged())
     {
         glViewport(
             m_viewportCapability->x(),

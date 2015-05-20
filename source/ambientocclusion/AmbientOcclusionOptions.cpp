@@ -70,7 +70,7 @@ bool AmbientOcclusionOptions::halfResolution() const {
 
 void AmbientOcclusionOptions::setHalfResolution(bool halfResolution) {
     m_halfResolution = halfResolution;
-    m_painter.updateFramebuffers();
+    m_resolutionChanged = true;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const
@@ -85,4 +85,12 @@ float AmbientOcclusionOptions::minimalKernelLength() const
 
 float AmbientOcclusionOptions::minimalKernelAngle() const{
     return m_minimalKernelAngle;
+}
+
+bool AmbientOcclusionOptions::hasResolutionChanged() {
+    if (m_resolutionChanged) {
+        m_resolutionChanged = false;
+        return true;
+    }
+    return false;
 }

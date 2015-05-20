@@ -28,6 +28,8 @@ public:
     int rotationTexSize() const;
     float minimalKernelLength() const;
     float minimalKernelAngle() const;
+
+    bool hasResolutionChanged();
     
 private:
     AmbientOcclusion & m_painter;
@@ -42,4 +44,6 @@ private:
     int m_rotationTexSize = 4;
     float m_minimalKernelLength = 0.1f;
     float m_minimalKernelAngle = 0.1f;
+
+    bool m_resolutionChanged = false;
 };
