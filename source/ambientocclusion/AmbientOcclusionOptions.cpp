@@ -20,6 +20,10 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "maximum", 8.0f },
         { "step", 0.5f }
     });
+
+    m_painter.addProperty<bool>("half_resolution", this,
+        &AmbientOcclusionOptions::halfResolution,
+        &AmbientOcclusionOptions::setHalfResolution);
     
     m_painter.addProperty<bool>("normal_oriented", this,
         &AmbientOcclusionOptions::normalOriented,
@@ -27,7 +31,7 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     
     m_painter.addProperty<bool>("attenuation", this,
                                 &AmbientOcclusionOptions::attenuation,
-                                &AmbientOcclusionOptions::setAtteunuation);
+                                &AmbientOcclusionOptions::setAttenuation);
     
     m_painter.addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
@@ -63,11 +67,6 @@ void AmbientOcclusionOptions::setblurKernelSize(int blurKernelSize)
     m_blurKernelSize = blurKernelSize;
 }
 
-bool AmbientOcclusionOptions::normalOriented() const
-{
-    return m_normalOriented;
-}
-
 float AmbientOcclusionOptions::kernelRadius() const
 {
     return m_kernelRadius;
@@ -76,6 +75,10 @@ float AmbientOcclusionOptions::kernelRadius() const
 void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
 {
     m_kernelRadius = kernelRadius;
+}
+
+bool AmbientOcclusionOptions::normalOriented() const {
+    return m_normalOriented;
 }
 
 void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
@@ -88,9 +91,18 @@ bool AmbientOcclusionOptions::attenuation() const
     return m_attenuation;
 }
 
-void AmbientOcclusionOptions::setAtteunuation(bool attenuation)
+void AmbientOcclusionOptions::setAttenuation(bool attenuation)
 {
     m_attenuation = attenuation;
+}
+
+bool AmbientOcclusionOptions::halfResolution() const {
+    return m_halfResolution;
+}
+
+void AmbientOcclusionOptions::setHalfResolution(bool halfResolution) {
+    m_halfResolution = halfResolution;
+    m_resolutionChanged = true;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const
@@ -105,4 +117,12 @@ float AmbientOcclusionOptions::minimalKernelLength() const
 
 float AmbientOcclusionOptions::minimalKernelAngle() const{
     return m_minimalKernelAngle;
+}
+
+bool AmbientOcclusionOptions::hasResolutionChanged() {
+    if (m_resolutionChanged) {
+        m_resolutionChanged = false;
+        return true;
+    }
+    return false;
 }
