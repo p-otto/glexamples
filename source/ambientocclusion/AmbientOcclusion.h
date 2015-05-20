@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <random>
 
 #include <glbinding/gl/types.h>
 
@@ -92,4 +93,6 @@ protected:
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
     std::unique_ptr<AmbientOcclusionOptions> m_options;
+
+    std::default_random_engine m_randEngine;
 };

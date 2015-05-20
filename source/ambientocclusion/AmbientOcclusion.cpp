@@ -3,6 +3,8 @@
 #include "ScreenAlignedQuadRenderer.h"
 #include "AmbientOcclusionOptions.h"
 
+#include <chrono>
+
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -44,6 +46,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_options(new AmbientOcclusionOptions(*this))
+,   m_randEngine(static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count()))
 {
 }
 
@@ -157,17 +160,18 @@ void AmbientOcclusion::updateFramebuffers()
 
 std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
 {
-    srand(clock());
     std::vector<glm::vec3> kernel(size);
     int count = 1;
     
+    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+    std::uniform_real_distribution<float> positive_distribution(-1.0, 1.0);
+
     for (auto &vec : kernel)
     {
-        // TODO: use C++ <random>
         do {
-            vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-            vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-            vec[2] = static_cast<float>(rand() % 1024) / 1024.0f;
+            vec[0] = distribution(m_randEngine);
+            vec[1] = distribution(m_randEngine);
+            vec[2] = positive_distribution(m_randEngine);
         } while(glm::dot(vec, glm::vec3(0,0,1)) < m_options->minimalKernelAngle());
         
         vec = glm::normalize(vec);
@@ -182,16 +186,16 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
 
 std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
 {
-    srand(clock());
     std::vector<glm::vec3> kernel(size);
     int count = 1;
     
+    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+
     for (auto &vec : kernel)
     {
-        // TODO: use C++ <random>
-        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[2] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[0] = distribution(m_randEngine);
+        vec[1] = distribution(m_randEngine);
+        vec[2] = distribution(m_randEngine);
         
         vec = glm::normalize(vec);
         
@@ -205,14 +209,15 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
 
 std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedRotationTexture(int size)
 {
-    srand(clock());
     std::vector<glm::vec3> tex(size * size);
     
+    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+
     for (auto &vec : tex)
     {
         // TODO: use C++ <random>
-        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[0] = distribution(m_randEngine);
+        vec[1] = distribution(m_randEngine);
         vec[2] = 0.0f;
         
         vec = glm::normalize(vec);
@@ -223,15 +228,16 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedRotationTexture(int si
 
 std::vector<glm::vec3> AmbientOcclusion::getCrytekReflectionTexture(int size)
 {
-    srand(clock());
     std::vector<glm::vec3> tex(size * size);
     
+    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+
     for (auto &vec : tex)
     {
         // TODO: use C++ <random>
-        vec[0] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[1] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
-        vec[2] = static_cast<float>(rand() % 1024) / 512.0f - 1.0f;
+        vec[0] = distribution(m_randEngine);
+        vec[1] = distribution(m_randEngine);
+        vec[2] = distribution(m_randEngine);
         
         vec = glm::normalize(vec);
     }
