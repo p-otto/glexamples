@@ -85,14 +85,14 @@ protected:
     globjects::ref_ptr<globjects::Program> m_blurYProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
-    std::vector<glm::vec3> m_kernel;
+    std::unique_ptr<std::vector<glm::vec3>> m_kernel;
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
-    std::unique_ptr<AmbientOcclusionOptions> m_options;
+    std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;
 
-    std::default_random_engine m_randEngine;
+    std::unique_ptr<std::default_random_engine> m_randEngine;
 };

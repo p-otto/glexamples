@@ -45,8 +45,8 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
-,   m_options(new AmbientOcclusionOptions(*this))
-,   m_randEngine(static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count()))
+,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
+,   m_randEngine(new std::default_random_engine(static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count())))
 {
 }
 
@@ -170,15 +170,15 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
     for (auto &vec : kernel)
     {
         do {
-            vec[0] = distribution(m_randEngine);
-            vec[1] = distribution(m_randEngine);
-            vec[2] = positive_distribution(m_randEngine);
-        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_options->minimalKernelAngle());
+            vec[0] = distribution(*m_randEngine);
+            vec[1] = distribution(*m_randEngine);
+            vec[2] = positive_distribution(*m_randEngine);
+        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_occlusionOptions->minimalKernelAngle());
         
         vec = glm::normalize(vec);
         
         float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_options->minimalKernelLength(), 1.0f, scale * scale);
+        scale = glm::mix(m_occlusionOptions->minimalKernelLength(), 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -194,14 +194,14 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
 
     for (auto &vec : kernel)
     {
-        vec[0] = distribution(m_randEngine);
-        vec[1] = distribution(m_randEngine);
-        vec[2] = distribution(m_randEngine);
+        vec[0] = distribution(*m_randEngine);
+        vec[1] = distribution(*m_randEngine);
+        vec[2] = distribution(*m_randEngine);
         
         vec = glm::normalize(vec);
         
         float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_options->minimalKernelLength(), 1.0f, scale * scale);
+        scale = glm::mix(m_occlusionOptions->minimalKernelLength(), 1.0f, scale * scale);
         vec *= scale;
     }
     
@@ -216,9 +216,8 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedRotationTexture(int si
 
     for (auto &vec : tex)
     {
-        // TODO: use C++ <random>
-        vec[0] = distribution(m_randEngine);
-        vec[1] = distribution(m_randEngine);
+        vec[0] = distribution(*m_randEngine);
+        vec[1] = distribution(*m_randEngine);
         vec[2] = 0.0f;
         
         vec = glm::normalize(vec);
@@ -235,10 +234,9 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekReflectionTexture(int size)
 
     for (auto &vec : tex)
     {
-        // TODO: use C++ <random>
-        vec[0] = distribution(m_randEngine);
-        vec[1] = distribution(m_randEngine);
-        vec[2] = distribution(m_randEngine);
+        vec[0] = distribution(*m_randEngine);
+        vec[1] = distribution(*m_randEngine);
+        vec[2] = distribution(*m_randEngine);
         
         vec = glm::normalize(vec);
     }
@@ -273,16 +271,16 @@ void AmbientOcclusion::onInitialize()
     
     // TODO: refactor rotation texture generation into function, so it can be called when texture size changes
     std::vector<glm::vec3> rotationValues;
-    if (m_options->normalOriented()) {
-        m_kernel = getNormalOrientedKernel(m_options->maxKernelSize());
-        rotationValues = getNormalOrientedRotationTexture(m_options->rotationTexSize());
+    if (m_occlusionOptions->normalOriented()) {
+        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getNormalOrientedKernel(m_occlusionOptions->maxKernelSize()));
+        rotationValues = getNormalOrientedRotationTexture(m_occlusionOptions->rotationTexSize());
     }
     else {
-        m_kernel = getCrytekKernel(m_options->maxKernelSize());
-        rotationValues = getCrytekReflectionTexture(m_options->rotationTexSize());
+        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getCrytekKernel(m_occlusionOptions->maxKernelSize()));
+        rotationValues = getCrytekReflectionTexture(m_occlusionOptions->rotationTexSize());
     }
     
-    m_rotationTex->image2D(0, GL_RGB32F, m_options->rotationTexSize(), m_options->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
+    m_rotationTex->image2D(0, GL_RGB32F, m_occlusionOptions->rotationTexSize(), m_occlusionOptions->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
     
     setupFramebuffers();
     setupModel();
@@ -328,7 +326,7 @@ void AmbientOcclusion::onPaint()
     glDisable(GL_DEPTH_TEST);
     
     // calculate ambient occlusion
-    if (m_options->normalOriented())
+    if (m_occlusionOptions->normalOriented())
     {
         m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramNormalOriented);
     }
@@ -350,11 +348,11 @@ void AmbientOcclusion::onPaint()
         "u_proj", m_projectionCapability->projection(),
         "u_resolutionX", m_viewportCapability->width(),
         "u_resolutionY", m_viewportCapability->height(),
-        "u_kernelSize", m_options->kernelSize(),
-        "u_kernelRadius", m_options->kernelRadius()
+        "u_kernelSize", m_occlusionOptions->kernelSize(),
+        "u_kernelRadius", m_occlusionOptions->kernelRadius()
     );
     
-    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_options->kernelSize(), glm::value_ptr(m_kernel[0]));
+    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_occlusionOptions->kernelSize(), glm::value_ptr((*m_kernel)[0]));
     
     m_screenAlignedQuad->draw();
     
