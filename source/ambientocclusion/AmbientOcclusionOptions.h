@@ -15,6 +15,9 @@ public:
     int kernelSize() const;
     void setKernelSize(int kernelSize);
     
+    int blurKernelSize() const;
+    void setblurKernelSize(int blurKernelSize);
+    
     bool normalOriented() const;
     void setNormalOriented(bool normalOriented);
     
@@ -32,6 +35,7 @@ private:
     static const int s_maxKernelSize = 128;
     
     int m_kernelSize = 32;
+    int m_blurKernelSize = 2;
     bool m_normalOriented = true;
     float m_kernelRadius = 1.0f;
     

@@ -24,6 +24,14 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     m_painter.addProperty<bool>("normal_oriented", this,
         &AmbientOcclusionOptions::normalOriented,
         &AmbientOcclusionOptions::setNormalOriented);
+    
+    m_painter.addProperty<int>("blur_kernel_size", this,
+        &AmbientOcclusionOptions::blurKernelSize,
+        &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
+        { "minimum", 0 },
+        { "maximum", 7 },
+        { "step", 1 }
+    });
 }
 
 int AmbientOcclusionOptions::maxKernelSize() const
@@ -39,6 +47,16 @@ int AmbientOcclusionOptions::kernelSize() const
 void AmbientOcclusionOptions::setKernelSize(int kernelSize)
 {
     m_kernelSize = kernelSize;
+}
+
+int AmbientOcclusionOptions::blurKernelSize() const
+{
+    return m_blurKernelSize;
+}
+
+void AmbientOcclusionOptions::setblurKernelSize(int blurKernelSize)
+{
+    m_blurKernelSize = blurKernelSize;
 }
 
 bool AmbientOcclusionOptions::normalOriented() const
