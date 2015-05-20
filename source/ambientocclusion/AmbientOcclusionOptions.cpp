@@ -20,6 +20,10 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "maximum", 8.0f },
         { "step", 0.5f }
     });
+
+    m_painter.addProperty<bool>("half_resolution", this,
+        &AmbientOcclusionOptions::halfResolution,
+        &AmbientOcclusionOptions::setHalfResolution);
     
     m_painter.addProperty<bool>("normal_oriented", this,
         &AmbientOcclusionOptions::normalOriented,
@@ -59,11 +63,6 @@ void AmbientOcclusionOptions::setblurKernelSize(int blurKernelSize)
     m_blurKernelSize = blurKernelSize;
 }
 
-bool AmbientOcclusionOptions::normalOriented() const
-{
-    return m_normalOriented;
-}
-
 float AmbientOcclusionOptions::kernelRadius() const
 {
     return m_kernelRadius;
@@ -74,9 +73,22 @@ void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
     m_kernelRadius = kernelRadius;
 }
 
+bool AmbientOcclusionOptions::normalOriented() const {
+    return m_normalOriented;
+}
+
 void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
 {
     m_normalOriented = normalOriented;
+}
+
+bool AmbientOcclusionOptions::halfResolution() const {
+    return m_halfResolution;
+}
+
+void AmbientOcclusionOptions::setHalfResolution(bool halfResolution) {
+    m_halfResolution = halfResolution;
+    m_resolutionChanged = true;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const
@@ -91,4 +103,12 @@ float AmbientOcclusionOptions::minimalKernelLength() const
 
 float AmbientOcclusionOptions::minimalKernelAngle() const{
     return m_minimalKernelAngle;
+}
+
+bool AmbientOcclusionOptions::hasResolutionChanged() {
+    if (m_resolutionChanged) {
+        m_resolutionChanged = false;
+        return true;
+    }
+    return false;
 }

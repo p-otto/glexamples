@@ -23,11 +23,16 @@ public:
     
     float kernelRadius() const;
     void setKernelRadius(float kernelRadius);
+
+    bool halfResolution() const;
+    void setHalfResolution(bool halfResolution);
     
     // TODO: implement setters and (if necessary update AmbientOcclusion)
     int rotationTexSize() const;
     float minimalKernelLength() const;
     float minimalKernelAngle() const;
+
+    bool hasResolutionChanged();
     
 private:
     AmbientOcclusion & m_painter;
@@ -38,8 +43,11 @@ private:
     int m_blurKernelSize = 2;
     bool m_normalOriented = true;
     float m_kernelRadius = 1.0f;
+    bool m_halfResolution = false;
     
     int m_rotationTexSize = 4;
     float m_minimalKernelLength = 0.1f;
     float m_minimalKernelAngle = 0.1f;
+
+    bool m_resolutionChanged = false;
 };

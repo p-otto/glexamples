@@ -148,12 +148,19 @@ void AmbientOcclusion::setupShaders()
 void AmbientOcclusion::updateFramebuffers()
 {
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
+    auto occlusionWidth = width, occlusionHeight = height;
     
     m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     m_normalDepthAttachment->image2D(0, GL_RGBA12, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
     
-    m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    if (m_occlusionOptions->halfResolution()) {
+        occlusionHeight /= 2;
+        occlusionWidth /= 2;
+    }
+
+    m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     
     m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
@@ -290,7 +297,7 @@ void AmbientOcclusion::onInitialize()
 
 void AmbientOcclusion::onPaint()
 {
-    if (m_viewportCapability->hasChanged())
+    if (m_viewportCapability->hasChanged() || m_occlusionOptions->hasResolutionChanged())
     {
         glViewport(
             m_viewportCapability->x(),
@@ -334,6 +341,13 @@ void AmbientOcclusion::onPaint()
     
     m_occlusionFbo->bind();
     m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
+    if (m_occlusionOptions->halfResolution()) {
+        glViewport(
+            m_viewportCapability->x(),
+            m_viewportCapability->y(),
+            m_viewportCapability->width() / 2,
+            m_viewportCapability->height() / 2);
+    }
     
     m_screenAlignedQuad->setTextures({
         {"u_normal_depth", m_normalDepthAttachment},
@@ -353,7 +367,12 @@ void AmbientOcclusion::onPaint()
     
     m_screenAlignedQuad->draw();
     
-    // blur ambient occlusion texture
+    // blur ambient occlusion textureglViewport(
+    glViewport(
+        m_viewportCapability->x(),
+        m_viewportCapability->y(),
+        m_viewportCapability->width(),
+        m_viewportCapability->height());
     blur(m_occlusionAttachment, m_normalDepthAttachment, m_blurFbo);
     
     // finally, render to screen
