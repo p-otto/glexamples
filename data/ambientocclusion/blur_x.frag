@@ -5,10 +5,10 @@ in vec2 v_uv;
 
 uniform sampler2D u_normal_depth;
 uniform sampler2D u_occlusion;
+uniform int u_kernelSize;
 
 layout(location = 0) out float occlusion;
 
-#define KERNEL_SIZE 2
 #define EPSILON 0.01
 
 void main()
@@ -22,9 +22,9 @@ void main()
 
     float epsilon = mix(0.001, 0.0003, diff);
     occlusion = 0.0;
-    for (int x = -KERNEL_SIZE; x <= KERNEL_SIZE; ++x)
+    for (int x = -u_kernelSize; x <= u_kernelSize; ++x)
     {
         occlusion += texture(u_occlusion, v_uv + vec2(x * epsilon, 0)).r;
     }
-    occlusion /= KERNEL_SIZE * 2 + 1;
+    occlusion /= u_kernelSize * 2 + 1;
 }

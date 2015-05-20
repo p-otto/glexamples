@@ -389,6 +389,9 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *norma
         { "u_occlusion", input },
         { "u_normal_depth", normals }
     });
+    m_screenAlignedQuad->setUniforms(
+        "u_kernelSize", 2
+    );
     m_screenAlignedQuad->draw();
 
     // pass 2 (y)
@@ -400,5 +403,8 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *norma
         { "u_occlusion", m_blurTmpAttachment },
         { "u_normal_depth", normals }
     });
+    m_screenAlignedQuad->setUniforms(
+        "u_kernelSize", 2
+    );
     m_screenAlignedQuad->draw();
 }
