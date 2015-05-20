@@ -318,9 +318,6 @@ void AmbientOcclusion::onPaint()
     m_modelProgram->setUniform("u_view", m_cameraCapability->view());
     m_model->draw();
     
-    m_grid->update(eye, transform);
-    m_grid->draw();
-    
     m_modelProgram->release();
     
     glDisable(GL_DEPTH_TEST);
@@ -368,14 +365,20 @@ void AmbientOcclusion::onPaint()
     default_framebuffer->bind(GL_FRAMEBUFFER);
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    glEnable(GL_DEPTH_TEST);
+    
     m_screenAlignedQuad->setProgram(m_mixProgram);
     
     m_screenAlignedQuad->setTextures({
-        {"u_color", m_colorAttachment},
-        {"u_blur", m_blurAttachment}
+        { "u_color", m_colorAttachment },
+        { "u_blur", m_blurAttachment },
+        { "u_normal_depth", m_normalDepthAttachment }
     });
     
     m_screenAlignedQuad->draw();
+    
+    m_grid->update(eye, transform);
+    m_grid->draw();
 }
 
 void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output) {
