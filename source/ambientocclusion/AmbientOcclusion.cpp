@@ -131,11 +131,12 @@ void AmbientOcclusion::setupShaders()
                             Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
                             Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_x.frag")
     );
+    
     m_blurYProgram = new Program{};
     m_blurYProgram->attach(
-        Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_y.frag")
-        );
+                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
+                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_y.frag")
+    );
     
     m_mixProgram = new Program{};
     m_mixProgram->attach(
