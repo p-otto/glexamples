@@ -346,7 +346,8 @@ void AmbientOcclusion::onPaint()
         "u_resolutionX", m_viewportCapability->width(),
         "u_resolutionY", m_viewportCapability->height(),
         "u_kernelSize", m_occlusionOptions->kernelSize(),
-        "u_kernelRadius", m_occlusionOptions->kernelRadius()
+        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
+        "u_attenuation", m_occlusionOptions->attenuation()
     );
     
     glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_occlusionOptions->kernelSize(), glm::value_ptr((*m_kernel)[0]));

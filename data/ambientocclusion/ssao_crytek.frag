@@ -13,6 +13,7 @@ uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform float u_kernelRadius;
 uniform int u_kernelSize;
+uniform bool u_attenuation;
 
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
@@ -55,14 +56,21 @@ void main()
 
         float sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * 2.0 - 1.0;
 
-        if (sample_depth <= ndc_sample_point.z) {
-            occlusion += 1.0;
+        if (u_attenuation)
+        {
+            float diff = 5000 * max(ndc_sample_point.z - sample_depth, 0.0);
+            occlusion += 1.0 / (1.0 + diff * diff);
+        }
+        else
+        {
+            occlusion += 1.0 * float(sample_depth <= ndc_sample_point.z);
         }
     }
 
     occlusion /= u_kernelSize;
 
-    if (depth > 0.99) {
-        occlusion = 0.0;
+    if (u_attenuation)
+    {
+        occlusion = 1.0 - occlusion;
     }
 }

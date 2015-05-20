@@ -24,6 +24,9 @@ public:
     float kernelRadius() const;
     void setKernelRadius(float kernelRadius);
     
+    bool attenuation() const;
+    void setAtteunuation(bool attenuation);
+    
     // TODO: implement setters and (if necessary update AmbientOcclusion)
     int rotationTexSize() const;
     float minimalKernelLength() const;
@@ -38,6 +41,7 @@ private:
     int m_blurKernelSize = 2;
     bool m_normalOriented = true;
     float m_kernelRadius = 1.0f;
+    bool m_attenuation = false;
     
     int m_rotationTexSize = 4;
     float m_minimalKernelLength = 0.1f;

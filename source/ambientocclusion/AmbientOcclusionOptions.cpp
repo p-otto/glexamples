@@ -25,6 +25,10 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::normalOriented,
         &AmbientOcclusionOptions::setNormalOriented);
     
+    m_painter.addProperty<bool>("attenuation", this,
+                                &AmbientOcclusionOptions::attenuation,
+                                &AmbientOcclusionOptions::setAtteunuation);
+    
     m_painter.addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
         &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
@@ -77,6 +81,16 @@ void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
 void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
 {
     m_normalOriented = normalOriented;
+}
+
+bool AmbientOcclusionOptions::attenuation() const
+{
+    return m_attenuation;
+}
+
+void AmbientOcclusionOptions::setAtteunuation(bool attenuation)
+{
+    m_attenuation = attenuation;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const
