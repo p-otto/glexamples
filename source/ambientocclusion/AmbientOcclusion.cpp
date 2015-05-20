@@ -153,7 +153,7 @@ void AmbientOcclusion::updateFramebuffers()
     m_normalDepthAttachment->image2D(0, GL_RGBA12, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
     
-    m_occlusionAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_occlusionAttachment->image2D(0, GL_R8, width / 2, height / 2, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     
     m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
@@ -337,8 +337,11 @@ void AmbientOcclusion::onPaint()
         m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramCrytek);
     }
     
+    const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
+    
     m_occlusionFbo->bind();
     m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
+    glViewport(0, 0, width / 2, height / 2);
     
     m_screenAlignedQuad->setTextures({
         {"u_normal_depth", m_normalDepthAttachment},
@@ -357,6 +360,7 @@ void AmbientOcclusion::onPaint()
     glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_options->kernelSize(), glm::value_ptr(m_kernel[0]));
     
     m_screenAlignedQuad->draw();
+    glViewport(0, 0, width, height);
     
     // blur ambient occlusion texture
     blur(m_occlusionAttachment, m_normalDepthAttachment, m_blurFbo);
