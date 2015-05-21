@@ -20,6 +20,14 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "maximum", 8.0f },
         { "step", 0.5f }
     });
+    
+    m_painter.addProperty<int>("blur_kernel_size", this,
+        &AmbientOcclusionOptions::blurKernelSize,
+        &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
+        { "minimum", 0 },
+        { "maximum", 7 },
+        { "step", 1 }
+    });
 
     m_painter.addProperty<bool>("half_resolution", this,
         &AmbientOcclusionOptions::halfResolution,
@@ -30,16 +38,8 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::setNormalOriented);
     
     m_painter.addProperty<bool>("attenuation", this,
-                                &AmbientOcclusionOptions::attenuation,
-                                &AmbientOcclusionOptions::setAttenuation);
-    
-    m_painter.addProperty<int>("blur_kernel_size", this,
-        &AmbientOcclusionOptions::blurKernelSize,
-        &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
-        { "minimum", 0 },
-        { "maximum", 7 },
-        { "step", 1 }
-    });
+        &AmbientOcclusionOptions::attenuation,
+        &AmbientOcclusionOptions::setAttenuation);
 }
 
 int AmbientOcclusionOptions::maxKernelSize() const
@@ -77,7 +77,8 @@ void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
     m_kernelRadius = kernelRadius;
 }
 
-bool AmbientOcclusionOptions::normalOriented() const {
+bool AmbientOcclusionOptions::normalOriented() const
+{
     return m_normalOriented;
 }
 
