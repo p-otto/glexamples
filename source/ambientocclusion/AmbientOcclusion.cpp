@@ -172,7 +172,7 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
     int count = 1;
     
     std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-    std::uniform_real_distribution<float> positive_distribution(-1.0, 1.0);
+    std::uniform_real_distribution<float> positive_distribution(0.0, 1.0);
 
     for (auto &vec : kernel)
     {
