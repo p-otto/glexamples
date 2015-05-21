@@ -42,6 +42,7 @@ Plane::Plane()
     binding->setBuffer(m_positionBuffer, 0, sizeof(glm::vec3));
     binding->setFormat(3, gl::GL_FLOAT, gl::GL_FALSE, 0);
     
+    binding = m_vao->binding(1);
     binding->setAttribute(1);
     binding->setBuffer(m_normalBuffer, 0, sizeof(glm::vec3));
     binding->setFormat(3, gl::GL_FLOAT, gl::GL_FALSE, 0);
