@@ -39,6 +39,7 @@ set(sources
     ${source_path}/AmbientOcclusion.cpp
     ${source_path}/AmbientOcclusionOptions.cpp
     ${source_path}/ScreenAlignedQuadRenderer.cpp
+    ${source_path}/Plane.cpp
     ${source_path}/plugin.cpp
 )
 
@@ -46,6 +47,7 @@ set(api_includes
     ${include_path}/AmbientOcclusion.h
     ${include_path}/AmbientOcclusionOptions.h
     ${include_path}/ScreenAlignedQuadRenderer.h
+    ${include_path}/Plane.h
 )
 
 # Group source files

@@ -11,6 +11,7 @@
 
 #include <glm/glm.hpp>
 
+class Plane;
 class ScreenAlignedQuadRenderer;
 class AmbientOcclusionOptions;
 
@@ -90,6 +91,7 @@ protected:
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
     std::unique_ptr<gloperate::PolygonalDrawable> m_model;
+    std::unique_ptr<Plane> m_plane;
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
     std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;

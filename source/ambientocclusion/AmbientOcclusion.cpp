@@ -1,5 +1,6 @@
 #include "AmbientOcclusion.h"
 
+#include "Plane.h"
 #include "ScreenAlignedQuadRenderer.h"
 #include "AmbientOcclusionOptions.h"
 
@@ -266,7 +267,8 @@ void AmbientOcclusion::onInitialize()
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
 
     m_screenAlignedQuad = gloperate::make_unique<ScreenAlignedQuadRenderer>();
-
+    m_plane = gloperate::make_unique<Plane>();
+    
     // some magic numbers that give a good view on the teapot
     m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
@@ -324,6 +326,8 @@ void AmbientOcclusion::onPaint()
     m_modelProgram->setUniform("u_mvp", transform);
     m_modelProgram->setUniform("u_view", m_cameraCapability->view());
     m_model->draw();
+    
+    m_plane->draw();
     
     m_modelProgram->release();
     
