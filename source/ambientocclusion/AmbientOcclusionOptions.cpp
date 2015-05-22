@@ -86,6 +86,11 @@ void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
 {
     m_normalOriented = normalOriented;
     m_painter.setupKernelAndRotationTex();
+
+    if (!m_normalOriented)
+    {
+        setAttenuation(false);
+    }
 }
 
 bool AmbientOcclusionOptions::attenuation() const
@@ -95,7 +100,10 @@ bool AmbientOcclusionOptions::attenuation() const
 
 void AmbientOcclusionOptions::setAttenuation(bool attenuation)
 {
-    m_attenuation = attenuation;
+    // TODO: disable attenuation property if Crytek shader is active
+    if (m_normalOriented) {
+        m_attenuation = attenuation;
+    }
 }
 
 bool AmbientOcclusionOptions::halfResolution() const {
