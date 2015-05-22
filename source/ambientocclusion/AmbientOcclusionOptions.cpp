@@ -5,7 +5,10 @@
 AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 : m_painter(painter)
 {
-    m_painter.addProperty<int>("kernel_size", this,
+    auto ao_group = m_painter.addGroup("ssao");
+    auto blur_group = m_painter.addGroup("blurring");
+
+    ao_group->addProperty<int>("kernel_size", this,
         &AmbientOcclusionOptions::kernelSize,
         &AmbientOcclusionOptions::setKernelSize)->setOptions({
         { "minimum", 0 },
@@ -13,7 +16,7 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "step", 1 }
     });
     
-    m_painter.addProperty<float>("kernel_radius", this,
+    ao_group->addProperty<float>("kernel_radius", this,
         &AmbientOcclusionOptions::kernelRadius,
         &AmbientOcclusionOptions::setKernelRadius)->setOptions({
         { "minimum", 0.2f },
@@ -21,7 +24,19 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "step", 0.5f }
     });
     
-    m_painter.addProperty<int>("blur_kernel_size", this,
+    ao_group->addProperty<bool>("half_resolution", this,
+        &AmbientOcclusionOptions::halfResolution,
+        &AmbientOcclusionOptions::setHalfResolution);
+
+    ao_group->addProperty<bool>("normal_oriented", this,
+        &AmbientOcclusionOptions::normalOriented,
+        &AmbientOcclusionOptions::setNormalOriented);
+
+    ao_group->addProperty<bool>("attenuation", this,
+        &AmbientOcclusionOptions::attenuation,
+        &AmbientOcclusionOptions::setAttenuation);
+
+    blur_group->addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
         &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
         { "minimum", 0 },
@@ -29,21 +44,9 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "step", 1 }
     });
 
-    m_painter.addProperty<bool>("biliteral_blurring", this,
+    blur_group->addProperty<bool>("biliteral_blurring", this,
         &AmbientOcclusionOptions::biliteralBlurring,
         &AmbientOcclusionOptions::setBiliteralBlurring);
-
-    m_painter.addProperty<bool>("half_resolution", this,
-        &AmbientOcclusionOptions::halfResolution,
-        &AmbientOcclusionOptions::setHalfResolution);
-    
-    m_painter.addProperty<bool>("normal_oriented", this,
-        &AmbientOcclusionOptions::normalOriented,
-        &AmbientOcclusionOptions::setNormalOriented);
-    
-    m_painter.addProperty<bool>("attenuation", this,
-        &AmbientOcclusionOptions::attenuation,
-        &AmbientOcclusionOptions::setAttenuation);
 }
 
 int AmbientOcclusionOptions::maxKernelSize() const
@@ -90,11 +93,6 @@ void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
 {
     m_normalOriented = normalOriented;
     m_painter.setupKernelAndRotationTex();
-
-    if (!m_normalOriented)
-    {
-        setAttenuation(false);
-    }
 }
 
 bool AmbientOcclusionOptions::attenuation() const
@@ -104,10 +102,7 @@ bool AmbientOcclusionOptions::attenuation() const
 
 void AmbientOcclusionOptions::setAttenuation(bool attenuation)
 {
-    // TODO: disable attenuation property if Crytek shader is active
-    if (m_normalOriented) {
-        m_attenuation = attenuation;
-    }
+    m_attenuation = attenuation;
 }
 
 bool AmbientOcclusionOptions::halfResolution() const {
