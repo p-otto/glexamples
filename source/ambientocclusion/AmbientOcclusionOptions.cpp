@@ -85,6 +85,7 @@ bool AmbientOcclusionOptions::normalOriented() const
 void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
 {
     m_normalOriented = normalOriented;
+    m_painter.setupKernelAndRotationTex();
 }
 
 bool AmbientOcclusionOptions::attenuation() const

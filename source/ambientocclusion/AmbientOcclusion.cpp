@@ -107,6 +107,29 @@ void AmbientOcclusion::setupModel()
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 }
 
+void AmbientOcclusion::setupKernelAndRotationTex()
+{
+    std::vector<glm::vec3> rotationValues;
+    if (m_occlusionOptions->normalOriented()) {
+        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getNormalOrientedKernel(m_occlusionOptions->maxKernelSize()));
+        rotationValues = getNormalOrientedRotationTexture(m_occlusionOptions->rotationTexSize());
+    }
+    else {
+        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getCrytekKernel(m_occlusionOptions->maxKernelSize()));
+        rotationValues = getCrytekReflectionTexture(m_occlusionOptions->rotationTexSize());
+    }
+
+    if (!m_rotationTex)
+    {
+        m_rotationTex = Texture::createDefault(GL_TEXTURE_2D);
+        m_rotationTex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
+        m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
+        m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
+    }
+
+    m_rotationTex->image2D(0, GL_RGB32F, m_occlusionOptions->rotationTexSize(), m_occlusionOptions->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
+}
+
 void AmbientOcclusion::setupShaders()
 {
     m_modelProgram = new Program{};
@@ -273,28 +296,11 @@ void AmbientOcclusion::onInitialize()
     m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
     
-    m_rotationTex = Texture::createDefault(GL_TEXTURE_2D);
-    m_rotationTex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
-    m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
-    m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
-    
-    // TODO: refactor rotation texture generation into function, so it can be called when texture size changes
-    std::vector<glm::vec3> rotationValues;
-    if (m_occlusionOptions->normalOriented()) {
-        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getNormalOrientedKernel(m_occlusionOptions->maxKernelSize()));
-        rotationValues = getNormalOrientedRotationTexture(m_occlusionOptions->rotationTexSize());
-    }
-    else {
-        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getCrytekKernel(m_occlusionOptions->maxKernelSize()));
-        rotationValues = getCrytekReflectionTexture(m_occlusionOptions->rotationTexSize());
-    }
-    
-    m_rotationTex->image2D(0, GL_RGB32F, m_occlusionOptions->rotationTexSize(), m_occlusionOptions->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
-    
     setupFramebuffers();
     setupModel();
     setupShaders();
     setupProjection();
+    setupKernelAndRotationTex();
 }
 
 void AmbientOcclusion::onPaint()
