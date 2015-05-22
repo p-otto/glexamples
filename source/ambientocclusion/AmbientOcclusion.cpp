@@ -47,7 +47,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
-,   m_randEngine(new std::default_random_engine(static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count())))
+,   m_randEngine(new std::default_random_engine(std::random_device{}()))
 {
 }
 
