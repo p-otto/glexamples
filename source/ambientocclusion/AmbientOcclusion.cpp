@@ -175,7 +175,7 @@ void AmbientOcclusion::updateFramebuffers()
     auto occlusionWidth = width, occlusionHeight = height;
     
     m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    m_normalDepthAttachment->image2D(0, GL_RGBA12, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    m_normalDepthAttachment->image2D(0, GL_RGBA16, width, height, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
     m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
     
     if (m_occlusionOptions->halfResolution()) {
@@ -425,7 +425,8 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *norma
         { "u_normal_depth", normals }
     });
     m_screenAlignedQuad->setUniforms(
-        "u_kernelSize", m_occlusionOptions->blurKernelSize()
+        "u_kernelSize", m_occlusionOptions->blurKernelSize(),
+        "u_biliteral", m_occlusionOptions->biliteralBlurring()
     );
     m_screenAlignedQuad->draw();
 
@@ -439,7 +440,8 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *norma
         { "u_normal_depth", normals }
     });
     m_screenAlignedQuad->setUniforms(
-        "u_kernelSize", m_occlusionOptions->blurKernelSize()
+        "u_kernelSize", m_occlusionOptions->blurKernelSize(),
+        "u_biliteral", m_occlusionOptions->biliteralBlurring()
     );
     m_screenAlignedQuad->draw();
 }

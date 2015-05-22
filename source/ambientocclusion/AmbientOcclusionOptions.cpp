@@ -29,6 +29,10 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "step", 1 }
     });
 
+    m_painter.addProperty<bool>("biliteral_blurring", this,
+        &AmbientOcclusionOptions::biliteralBlurring,
+        &AmbientOcclusionOptions::setBiliteralBlurring);
+
     m_painter.addProperty<bool>("half_resolution", this,
         &AmbientOcclusionOptions::halfResolution,
         &AmbientOcclusionOptions::setHalfResolution);
@@ -113,6 +117,16 @@ bool AmbientOcclusionOptions::halfResolution() const {
 void AmbientOcclusionOptions::setHalfResolution(bool halfResolution) {
     m_halfResolution = halfResolution;
     m_resolutionChanged = true;
+}
+
+bool AmbientOcclusionOptions::biliteralBlurring() const
+{
+    return m_biliteralBlurring;
+}
+
+void AmbientOcclusionOptions::setBiliteralBlurring(bool biliteralBlurring)
+{
+    m_biliteralBlurring = biliteralBlurring;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const

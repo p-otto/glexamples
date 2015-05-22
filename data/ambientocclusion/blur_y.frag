@@ -5,26 +5,38 @@ in vec2 v_uv;
 
 uniform sampler2D u_normal_depth;
 uniform sampler2D u_occlusion;
+uniform bool u_biliteral;
 uniform int u_kernelSize;
 
 layout(location = 0) out float occlusion;
 
-#define EPSILON 0.01
+#define EPSILON 0.001
+#define COMP_DEPTH 0.01
+#define COMP_NORMAL 0.5
 
 void main()
 {
-    float depth_diff_x = texture(u_normal_depth, v_uv - vec2(-EPSILON, 0.0)).a - texture(u_normal_depth, v_uv - vec2(EPSILON, 0.0)).a;
-    float depth_diff_y = texture(u_normal_depth, v_uv - vec2(0.0, -EPSILON)).a - texture(u_normal_depth, v_uv - vec2(0.0, EPSILON)).a;
-
-    float diff = abs(depth_diff_x) + abs(depth_diff_y);
-    diff = clamp(diff / 2.0, 0.0, 0.01);
-    diff /= 0.01;
-
-    float epsilon = mix(0.001, 0.0003, diff);
+    vec4 normal_depth = texture(u_normal_depth, v_uv);
+    
     occlusion = 0.0;
+    float count = 0.0;
     for (int y = -u_kernelSize; y <= u_kernelSize; ++y)
     {
-        occlusion += texture(u_occlusion, v_uv + vec2(0, y * epsilon)).r;
+        vec2 cur_uv = v_uv + vec2(0, y * EPSILON);
+        
+        if (u_biliteral)
+        {
+            vec4 cur_normal_depth = texture(u_normal_depth, cur_uv);
+            
+            float depth_test = abs(normal_depth.a - cur_normal_depth.a) < COMP_DEPTH ? 1.0 : 0.0;
+            float normal_test = dot(normal_depth.xyz * 2.0 - vec3(1.0), cur_normal_depth.xyz * 2.0 - vec3(1.0)) > COMP_NORMAL ? 1.0 : 0.0;
+            occlusion += texture(u_occlusion, cur_uv).r * depth_test * normal_test;
+            count += depth_test * normal_test;
+        }
+        else {
+            occlusion += texture(u_occlusion, cur_uv).r;
+            count += 1.0;
+        }
     }
-    occlusion /= u_kernelSize * 2 + 1;
+    occlusion /= count;
 }

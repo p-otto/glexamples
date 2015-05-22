@@ -29,6 +29,9 @@ public:
     
     bool attenuation() const;
     void setAttenuation(bool attenuation);
+
+    bool biliteralBlurring() const;
+    void setBiliteralBlurring(bool biliteralBlurring);
     
     // TODO: implement setters and (if necessary update AmbientOcclusion)
     int rotationTexSize() const;
@@ -48,6 +51,7 @@ private:
     float m_kernelRadius = 1.0f;
     bool m_attenuation = false;
     bool m_halfResolution = false;
+    bool m_biliteralBlurring = true;
     
     int m_rotationTexSize = 4;
     float m_minimalKernelLength = 0.1f;
