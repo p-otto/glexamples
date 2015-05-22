@@ -325,6 +325,7 @@ void AmbientOcclusion::onPaint()
     
     m_modelProgram->setUniform("u_mvp", transform);
     m_modelProgram->setUniform("u_view", m_cameraCapability->view());
+    m_modelProgram->setUniform("u_farPlane", m_projectionCapability->zFar());
     m_model->draw();
     
     m_plane->draw();
@@ -361,6 +362,7 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->setUniforms(
         "u_invProj", glm::inverse(m_projectionCapability->projection()),
         "u_proj", m_projectionCapability->projection(),
+        "u_farPlane", m_projectionCapability->zFar(),
         "u_resolutionX", m_viewportCapability->width(),
         "u_resolutionY", m_viewportCapability->height(),
         "u_kernelSize", m_occlusionOptions->kernelSize(),
