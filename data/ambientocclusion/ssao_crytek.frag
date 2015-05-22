@@ -14,7 +14,6 @@ uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform float u_kernelRadius;
 uniform int u_kernelSize;
-uniform bool u_attenuation;
 
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
@@ -59,16 +58,7 @@ void main()
         
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
         
-        if (u_attenuation)
-        {
-            // dividing by u_kernelRadius squared, because a bigger radius means that depths difference will be bigger
-            float diff = 25 * (linear_comp_depth - linear_sample_depth) / (u_kernelRadius * u_kernelRadius);
-            occlusion += (1.0 / (1.0 + diff * diff)) * occluded;
-        }
-        else
-        {
-            occlusion += 1.0 * occluded;
-        }
+        occlusion += 1.0 * occluded;
     }
 
     occlusion /= u_kernelSize;
