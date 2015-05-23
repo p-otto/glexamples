@@ -135,7 +135,7 @@ void AmbientOcclusion::setupShaders()
     m_modelProgram = new Program{};
     m_modelProgram->attach(
                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
-                           Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
+                           Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag")
     );
     
     m_ambientOcclusionProgramNormalOriented = new Program{};
