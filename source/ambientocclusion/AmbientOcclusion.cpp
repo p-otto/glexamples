@@ -309,6 +309,22 @@ void AmbientOcclusion::onInitialize()
     setupKernelAndRotationTex();
 }
 
+void AmbientOcclusion::drawScene() {
+
+    auto& program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
+
+    program->use();
+
+    program->setUniform("u_mvp", m_projectionCapability->projection() * m_cameraCapability->view());
+    program->setUniform("u_view", m_cameraCapability->view());
+    program->setUniform("u_farPlane", m_projectionCapability->zFar());
+    m_model->draw();
+
+    m_plane->draw();
+
+    program->release();
+}
+
 void AmbientOcclusion::onPaint()
 {
     if (m_viewportCapability->hasChanged() || m_occlusionOptions->hasResolutionChanged())
@@ -329,22 +345,8 @@ void AmbientOcclusion::onPaint()
     m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
     m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-    
-    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
-    const auto eye = m_cameraCapability->eye();
 
-    auto& program = m_occlusionOptions->phong()? m_phongProgram : m_modelProgram;
-
-    program->use();
-
-    program->setUniform("u_mvp", transform);
-    program->setUniform("u_view", m_cameraCapability->view());
-    program->setUniform("u_farPlane", m_projectionCapability->zFar());
-    m_model->draw();
-    
-    m_plane->draw();
-    
-    program->release();
+    drawScene();
     
     glDisable(GL_DEPTH_TEST);
     
@@ -417,6 +419,9 @@ void AmbientOcclusion::onPaint()
     
     m_screenAlignedQuad->draw();
     
+    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
+    const auto eye = m_cameraCapability->eye();
+
     m_grid->update(eye, transform);
     m_grid->draw();
 }

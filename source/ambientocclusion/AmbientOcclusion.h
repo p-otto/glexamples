@@ -47,6 +47,7 @@ public:
     void setupShaders();
     void setupKernelAndRotationTex();
 
+    void drawScene();
     void blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output);
 
     std::vector<glm::vec3> getNormalOrientedKernel(int size);
