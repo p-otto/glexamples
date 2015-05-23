@@ -81,6 +81,7 @@ protected:
     globjects::ref_ptr<globjects::Texture> m_blurTmpAttachment;
     
     globjects::ref_ptr<globjects::Program> m_modelProgram;
+    globjects::ref_ptr<globjects::Program> m_phongProgram;
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramNormalOriented;
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramCrytek;
     globjects::ref_ptr<globjects::Program> m_blurXProgram;

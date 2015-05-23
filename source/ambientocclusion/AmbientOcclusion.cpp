@@ -135,6 +135,12 @@ void AmbientOcclusion::setupShaders()
     m_modelProgram = new Program{};
     m_modelProgram->attach(
                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
+                           Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
+    );
+    
+    m_phongProgram = new Program{};
+    m_phongProgram->attach(
+                           Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag")
     );
     
@@ -327,16 +333,16 @@ void AmbientOcclusion::onPaint()
     const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
     const auto eye = m_cameraCapability->eye();
 
-    m_modelProgram->use();
+    auto program = m_occlusionOptions->phong()? m_phongProgram : m_modelProgram;
     
-    m_modelProgram->setUniform("u_mvp", transform);
-    m_modelProgram->setUniform("u_view", m_cameraCapability->view());
-    m_modelProgram->setUniform("u_farPlane", m_projectionCapability->zFar());
+    program->setUniform("u_mvp", transform);
+    program->setUniform("u_view", m_cameraCapability->view());
+    program->setUniform("u_farPlane", m_projectionCapability->zFar());
     m_model->draw();
     
     m_plane->draw();
     
-    m_modelProgram->release();
+    program->release();
     
     glDisable(GL_DEPTH_TEST);
     

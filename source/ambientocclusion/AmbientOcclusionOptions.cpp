@@ -8,6 +8,11 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     auto ao_group = m_painter.addGroup("ssao");
     auto blur_group = m_painter.addGroup("blurring");
 
+
+    m_painter.addProperty<bool>("phong", this,
+        &AmbientOcclusionOptions::phong,
+        &AmbientOcclusionOptions::setPhong);
+
     ao_group->addProperty<int>("kernel_size", this,
         &AmbientOcclusionOptions::kernelSize,
         &AmbientOcclusionOptions::setKernelSize)->setOptions({
@@ -47,6 +52,14 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     blur_group->addProperty<bool>("biliteral_blurring", this,
         &AmbientOcclusionOptions::biliteralBlurring,
         &AmbientOcclusionOptions::setBiliteralBlurring);
+}
+
+bool AmbientOcclusionOptions::phong() const {
+    return m_phong;
+}
+
+void AmbientOcclusionOptions::setPhong(bool phong) {
+    m_phong = phong;
 }
 
 int AmbientOcclusionOptions::maxKernelSize() const

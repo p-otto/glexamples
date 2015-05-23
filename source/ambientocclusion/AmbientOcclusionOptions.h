@@ -9,6 +9,9 @@ public:
     ~AmbientOcclusionOptions() = default;
     
     void addProperties();
+
+    bool phong() const;
+    void setPhong(bool phong);
     
     int maxKernelSize() const;
     
@@ -44,6 +47,8 @@ private:
     AmbientOcclusion & m_painter;
     
     static const int s_maxKernelSize = 128;
+
+    bool m_phong = false;
     
     int m_kernelSize = 32;
     int m_blurKernelSize = 2;
