@@ -333,8 +333,10 @@ void AmbientOcclusion::onPaint()
     const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
     const auto eye = m_cameraCapability->eye();
 
-    auto program = m_occlusionOptions->phong()? m_phongProgram : m_modelProgram;
-    
+    auto& program = m_occlusionOptions->phong()? m_phongProgram : m_modelProgram;
+
+    program->use();
+
     program->setUniform("u_mvp", transform);
     program->setUniform("u_view", m_cameraCapability->view());
     program->setUniform("u_farPlane", m_projectionCapability->zFar());
