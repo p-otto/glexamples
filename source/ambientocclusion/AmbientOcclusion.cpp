@@ -414,12 +414,13 @@ void AmbientOcclusion::onPaint()
     m_screenAlignedQuad->setTextures({
         { "u_color", m_colorAttachment },
         { "u_blur", m_blurAttachment },
-        { "u_normal_depth", m_normalDepthAttachment }
+        { "u_normal_depth", m_depthBuffer }
     });
     
     m_screenAlignedQuad->draw();
     
-    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view();
+    glm::mat4 model;
+    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
     const auto eye = m_cameraCapability->eye();
 
     m_grid->update(eye, transform);

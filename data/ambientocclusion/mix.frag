@@ -11,7 +11,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    gl_FragDepth = texture(u_normal_depth, v_uv).a;
+    gl_FragDepth = texture(u_normal_depth, v_uv).r;
     vec3 color = texture(u_color, v_uv).rgb;
     float occlusion = texture(u_blur, v_uv).r;
 
