@@ -314,7 +314,7 @@ void AmbientOcclusion::drawScene() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     
-    auto& program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
+    auto program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
 
     program->use();
 
@@ -331,10 +331,9 @@ void AmbientOcclusion::drawScene() {
     glDisable(GL_DEPTH_TEST);
 }
 
-void AmbientOcclusion::onPaint()
-{
-    if (m_viewportCapability->hasChanged() || m_occlusionOptions->hasResolutionChanged())
-    {
+
+void AmbientOcclusion::onPaint() {
+    if (m_viewportCapability->hasChanged() || m_occlusionOptions->hasResolutionChanged()) {
         glViewport(
             m_viewportCapability->x(),
             m_viewportCapability->y(),
@@ -345,6 +344,34 @@ void AmbientOcclusion::onPaint()
         updateFramebuffers();
     }
     
+    drawScreenSpaceAmbientOcclusion();
+    drawGrid();
+}
+
+void AmbientOcclusion::drawGrid() {
+    glm::mat4 model;
+    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+    const auto eye = m_cameraCapability->eye();
+    
+    glEnable(GL_DEPTH_TEST);
+    
+    m_grid->update(eye, transform);
+    m_grid->draw();
+}
+
+void AmbientOcclusion::drawWithoutAmbientOcclusion() {
+    auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
+    if (!default_framebuffer) {
+        default_framebuffer = globjects::Framebuffer::defaultFBO();
+    }
+
+    default_framebuffer->bind(GL_FRAMEBUFFER);
+    default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    drawScene();
+}
+
+void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
     m_modelFbo->bind(GL_FRAMEBUFFER);
     m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
@@ -420,13 +447,6 @@ void AmbientOcclusion::onPaint()
     });
     
     m_screenAlignedQuad->draw();
-    
-    glm::mat4 model;
-    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
-    const auto eye = m_cameraCapability->eye();
-
-    m_grid->update(eye, transform);
-    m_grid->draw();
 }
 
 void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output) {

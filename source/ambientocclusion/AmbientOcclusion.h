@@ -48,6 +48,9 @@ public:
     void setupKernelAndRotationTex();
 
     void drawScene();
+    void drawGrid();
+    void drawScreenSpaceAmbientOcclusion();
+    void drawWithoutAmbientOcclusion();
     void blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output);
 
     std::vector<glm::vec3> getNormalOrientedKernel(int size);
