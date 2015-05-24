@@ -311,6 +311,9 @@ void AmbientOcclusion::onInitialize()
 
 void AmbientOcclusion::drawScene() {
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    
     auto& program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
 
     program->use();
@@ -323,6 +326,9 @@ void AmbientOcclusion::drawScene() {
     m_plane->draw();
 
     program->release();
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 }
 
 void AmbientOcclusion::onPaint()
@@ -338,8 +344,6 @@ void AmbientOcclusion::onPaint()
         m_viewportCapability->setChanged(false);
         updateFramebuffers();
     }
-
-    glEnable(GL_DEPTH_TEST);
     
     m_modelFbo->bind(GL_FRAMEBUFFER);
     m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
@@ -347,8 +351,6 @@ void AmbientOcclusion::onPaint()
     m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
     drawScene();
-    
-    glDisable(GL_DEPTH_TEST);
     
     // calculate ambient occlusion
     if (m_occlusionOptions->normalOriented())
