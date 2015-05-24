@@ -2,6 +2,8 @@
 
 class AmbientOcclusion;
 
+enum AmbientOcclusionType { None, ScreenSpace };
+
 class AmbientOcclusionOptions
 {
 public:
@@ -9,7 +11,10 @@ public:
     ~AmbientOcclusionOptions() = default;
     
     void addProperties();
-
+    
+    AmbientOcclusionType ambientOcclusion() const;
+    void setAmbientOcclusion(AmbientOcclusionType ambientOcclusion);
+    
     bool phong() const;
     void setPhong(bool phong);
     
@@ -47,7 +52,8 @@ private:
     AmbientOcclusion & m_painter;
     
     static const int s_maxKernelSize = 128;
-
+    
+    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::ScreenSpace;
     bool m_phong = false;
     
     int m_kernelSize = 32;

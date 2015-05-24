@@ -5,13 +5,24 @@
 AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 : m_painter(painter)
 {
-    auto ao_group = m_painter.addGroup("ssao");
-    auto blur_group = m_painter.addGroup("blurring");
+    auto aoOption = m_painter.addProperty<AmbientOcclusionType>("ambient_occlusion", this,
+        &AmbientOcclusionOptions::ambientOcclusion,
+        &AmbientOcclusionOptions::setAmbientOcclusion);
 
+    aoOption->setChoices({
+        None, ScreenSpace
+    });
+    aoOption->setStrings({
+        { None, "None" },
+        { ScreenSpace, "SSAO" }
+    });
 
     m_painter.addProperty<bool>("phong", this,
         &AmbientOcclusionOptions::phong,
         &AmbientOcclusionOptions::setPhong);
+
+    auto ao_group = m_painter.addGroup("ssao");
+    auto blur_group = m_painter.addGroup("blurring");
 
     ao_group->addProperty<int>("kernel_size", this,
         &AmbientOcclusionOptions::kernelSize,
@@ -52,6 +63,14 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     blur_group->addProperty<bool>("biliteral_blurring", this,
         &AmbientOcclusionOptions::biliteralBlurring,
         &AmbientOcclusionOptions::setBiliteralBlurring);
+}
+
+AmbientOcclusionType AmbientOcclusionOptions::ambientOcclusion() const {
+    return m_ambientOcclusion;
+}
+
+void AmbientOcclusionOptions::setAmbientOcclusion(AmbientOcclusionType ambientOcclusion) {
+    m_ambientOcclusion = ambientOcclusion;
 }
 
 bool AmbientOcclusionOptions::phong() const {

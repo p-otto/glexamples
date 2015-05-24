@@ -344,7 +344,15 @@ void AmbientOcclusion::onPaint() {
         updateFramebuffers();
     }
     
-    drawScreenSpaceAmbientOcclusion();
+    switch (m_occlusionOptions->ambientOcclusion()) {
+        case None:
+            drawWithoutAmbientOcclusion();
+            break;
+        case ScreenSpace:
+            drawScreenSpaceAmbientOcclusion();
+            break;
+    }
+
     drawGrid();
 }
 
