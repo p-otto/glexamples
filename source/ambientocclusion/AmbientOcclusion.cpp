@@ -357,14 +357,18 @@ void AmbientOcclusion::onPaint() {
 }
 
 void AmbientOcclusion::drawGrid() {
+    // move grid below plane
     glm::mat4 model;
-    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+    const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * model;
     const auto eye = m_cameraCapability->eye();
     
     glEnable(GL_DEPTH_TEST);
     
     m_grid->update(eye, transform);
     m_grid->draw();
+
+    glDisable(GL_DEPTH_TEST);
 }
 
 void AmbientOcclusion::drawWithoutAmbientOcclusion() {
@@ -423,11 +427,15 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
         "u_attenuation", m_occlusionOptions->attenuation()
     );
     
-    glProgramUniform3fv(m_screenAlignedQuad->program()->id(), m_screenAlignedQuad->program()->getUniformLocation("kernel"), m_occlusionOptions->kernelSize(), glm::value_ptr((*m_kernel)[0]));
+    glProgramUniform3fv(
+        m_screenAlignedQuad->program()->id(), 
+        m_screenAlignedQuad->program()->getUniformLocation("kernel"), 
+        m_occlusionOptions->kernelSize(), 
+        glm::value_ptr((*m_kernel)[0]));
     
     m_screenAlignedQuad->draw();
     
-    // blur ambient occlusion textureglViewport(
+    // blur ambient occlusion texture
     glViewport(
         m_viewportCapability->x(),
         m_viewportCapability->y(),
@@ -455,6 +463,8 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
     });
     
     m_screenAlignedQuad->draw();
+
+    glDisable(GL_DEPTH_TEST);
 }
 
 void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output) {
