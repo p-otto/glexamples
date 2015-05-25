@@ -57,11 +57,11 @@ private:
     bool m_phong = false;
     
     int m_kernelSize = 32;
-    int m_blurKernelSize = 2;
+    int m_blurKernelSize = 7;
     bool m_normalOriented = true;
-    float m_kernelRadius = 1.0f;
-    bool m_attenuation = false;
-    bool m_halfResolution = false;
+    float m_kernelRadius = 7.0f;
+    bool m_attenuation = true;
+    bool m_halfResolution = true;
     bool m_biliteralBlurring = true;
     
     int m_rotationTexSize = 4;
