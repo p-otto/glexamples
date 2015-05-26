@@ -36,6 +36,8 @@
 
 #include <gloperate/base/make_unique.hpp>
 
+#include <gloperate/resources/ResourceManager.h>
+
 using namespace gl;
 using namespace glm;
 using namespace globjects;
@@ -99,9 +101,8 @@ void AmbientOcclusion::setupFramebuffers()
 
 void AmbientOcclusion::setupModel()
 {
-    const auto meshLoader = gloperate_assimp::AssimpMeshLoader{};
-    const auto scene = meshLoader.load("data/ambientocclusion/dragon.obj", nullptr);
-    m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*scene);
+    const auto geometry = m_resourceManager.load<gloperate::PolygonalGeometry>("data/ambientocclusion/dragon.obj");
+    m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*geometry);
     
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
