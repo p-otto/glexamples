@@ -29,6 +29,7 @@
 #include <gloperate/painter/CameraCapability.h>
 #include <gloperate/painter/VirtualTimeCapability.h>
 
+#include <gloperate/primitives/Scene.h>
 #include <gloperate/primitives/PolygonalDrawable.h>
 #include <gloperate/primitives/AdaptiveGrid.h>
 
@@ -101,9 +102,12 @@ void AmbientOcclusion::setupFramebuffers()
 
 void AmbientOcclusion::setupModel()
 {
-    const auto geometry = m_resourceManager.load<gloperate::PolygonalGeometry>("data/ambientocclusion/dragon.obj");
-    m_model = gloperate::make_unique<gloperate::PolygonalDrawable>(*geometry);
-    
+    auto scene = m_resourceManager.load<gloperate::Scene>("data/ambientocclusion/dragon.obj");
+    for (auto & mesh : scene->meshes())
+    {
+        m_drawables.push_back(gloperate::PolygonalDrawable(*mesh));
+    }
+
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 }
@@ -318,13 +322,17 @@ void AmbientOcclusion::drawScene() {
     auto program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
 
     program->use();
-
-    program->setUniform("u_mvp", m_projectionCapability->projection() * m_cameraCapability->view());
-    program->setUniform("u_view", m_cameraCapability->view());
+    
+    glm::mat4 model;
+    program->setUniform("u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model);
+    program->setUniform("u_modelView", m_cameraCapability->view() * model);
     program->setUniform("u_farPlane", m_projectionCapability->zFar());
-    m_model->draw();
 
     m_plane->draw();
+    for (auto & drawable : m_drawables)
+    {
+        drawable.draw();
+    }
 
     program->release();
 

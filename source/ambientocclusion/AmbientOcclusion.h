@@ -96,7 +96,7 @@ protected:
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    std::unique_ptr<gloperate::PolygonalDrawable> m_model;
+    std::vector<gloperate::PolygonalDrawable> m_drawables;
     std::unique_ptr<Plane> m_plane;
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
