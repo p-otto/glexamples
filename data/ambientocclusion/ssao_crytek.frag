@@ -53,6 +53,11 @@ void main()
         ndc_sample_point.xy *= 0.5;
         ndc_sample_point.xy += 0.5;
 
+        if (ndc_sample_point.x > 1 || ndc_sample_point.y > 1 || ndc_sample_point.x < 0 || ndc_sample_point.y <0)
+        {
+            continue;
+        }
+        
         // transform both depths to [0, u_farPlane]
         float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
         float linear_comp_depth = -view_sample_point.z;
