@@ -53,11 +53,11 @@ public:
     void drawWithoutAmbientOcclusion();
     void blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output);
 
-    std::vector<glm::vec3> getNormalOrientedKernel(int size);
-    std::vector<glm::vec3> getNormalOrientedRotationTexture(int size);
+    std::vector<glm::vec3> getHemisphereKernel(int size);
+    std::vector<glm::vec3> getRotationTexture(int size);
     
-    std::vector<glm::vec3> getCrytekKernel(int size);
-    std::vector<glm::vec3> getCrytekReflectionTexture(int size);
+    std::vector<glm::vec3> getSphereKernel(int size);
+    std::vector<glm::vec3> getReflectionTexture(int size);
 
 protected:
     virtual void onInitialize() override;

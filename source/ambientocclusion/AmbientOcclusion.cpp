@@ -116,12 +116,12 @@ void AmbientOcclusion::setupKernelAndRotationTex()
 {
     std::vector<glm::vec3> rotationValues;
     if (m_occlusionOptions->normalOriented()) {
-        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getNormalOrientedKernel(m_occlusionOptions->maxKernelSize()));
-        rotationValues = getNormalOrientedRotationTexture(m_occlusionOptions->rotationTexSize());
+        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getHemisphereKernel(m_occlusionOptions->maxKernelSize()));
+        rotationValues = getRotationTexture(m_occlusionOptions->rotationTexSize());
     }
     else {
-        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getCrytekKernel(m_occlusionOptions->maxKernelSize()));
-        rotationValues = getCrytekReflectionTexture(m_occlusionOptions->rotationTexSize());
+        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getSphereKernel(m_occlusionOptions->maxKernelSize()));
+        rotationValues = getReflectionTexture(m_occlusionOptions->rotationTexSize());
     }
 
     if (!m_rotationTex)
@@ -201,7 +201,7 @@ void AmbientOcclusion::updateFramebuffers()
     m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 }
 
-std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
+std::vector<glm::vec3> AmbientOcclusion::getHemisphereKernel(int size)
 {
     std::vector<glm::vec3> kernel(size);
     int count = 1;
@@ -227,7 +227,7 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedKernel(int size)
     return kernel;
 }
 
-std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
+std::vector<glm::vec3> AmbientOcclusion::getSphereKernel(int size)
 {
     std::vector<glm::vec3> kernel(size);
     int count = 1;
@@ -250,7 +250,7 @@ std::vector<glm::vec3> AmbientOcclusion::getCrytekKernel(int size)
     return kernel;
 }
 
-std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedRotationTexture(int size)
+std::vector<glm::vec3> AmbientOcclusion::getRotationTexture(int size)
 {
     std::vector<glm::vec3> tex(size * size);
     
@@ -268,7 +268,7 @@ std::vector<glm::vec3> AmbientOcclusion::getNormalOrientedRotationTexture(int si
     return tex;
 }
 
-std::vector<glm::vec3> AmbientOcclusion::getCrytekReflectionTexture(int size)
+std::vector<glm::vec3> AmbientOcclusion::getReflectionTexture(int size)
 {
     std::vector<glm::vec3> tex(size * size);
     
