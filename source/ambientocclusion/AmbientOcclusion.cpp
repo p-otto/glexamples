@@ -314,8 +314,8 @@ void AmbientOcclusion::onInitialize()
     setupKernelAndRotationTex();
 }
 
-void AmbientOcclusion::drawScene() {
-
+void AmbientOcclusion::drawScene()
+{
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     
@@ -341,7 +341,8 @@ void AmbientOcclusion::drawScene() {
 }
 
 
-void AmbientOcclusion::onPaint() {
+void AmbientOcclusion::onPaint()
+{
     if (m_viewportCapability->hasChanged() || m_occlusionOptions->hasResolutionChanged()) {
         glViewport(
             m_viewportCapability->x(),
@@ -365,7 +366,8 @@ void AmbientOcclusion::onPaint() {
     drawGrid();
 }
 
-void AmbientOcclusion::drawGrid() {
+void AmbientOcclusion::drawGrid()
+{
     // move grid below plane
     glm::mat4 model;
     model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
@@ -392,7 +394,8 @@ void AmbientOcclusion::drawWithoutAmbientOcclusion() {
     drawScene();
 }
 
-void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
+void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
+{
     m_modelFbo->bind(GL_FRAMEBUFFER);
     m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
@@ -401,18 +404,8 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
     drawScene();
     
     // calculate ambient occlusion
-    if (m_occlusionOptions->normalOriented())
+    if (m_occlusionOptions->halfResolution())
     {
-        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramNormalOriented);
-    }
-    else
-    {
-        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramCrytek);
-    }
-    
-    m_occlusionFbo->bind();
-    m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
-    if (m_occlusionOptions->halfResolution()) {
         glViewport(
             m_viewportCapability->x(),
             m_viewportCapability->y(),
@@ -420,29 +413,7 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
             m_viewportCapability->height() / 2);
     }
     
-    m_screenAlignedQuad->setTextures({
-        {"u_normal_depth", m_normalDepthAttachment},
-        {"u_rotation", m_rotationTex}
-    });
-    
-    m_screenAlignedQuad->setUniforms(
-        "u_invProj", glm::inverse(m_projectionCapability->projection()),
-        "u_proj", m_projectionCapability->projection(),
-        "u_farPlane", m_projectionCapability->zFar(),
-        "u_resolutionX", m_viewportCapability->width(),
-        "u_resolutionY", m_viewportCapability->height(),
-        "u_kernelSize", m_occlusionOptions->kernelSize(),
-        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
-        "u_attenuation", m_occlusionOptions->attenuation()
-    );
-    
-    glProgramUniform3fv(
-        m_screenAlignedQuad->program()->id(), 
-        m_screenAlignedQuad->program()->getUniformLocation("kernel"), 
-        m_occlusionOptions->kernelSize(), 
-        glm::value_ptr((*m_kernel)[0]));
-    
-    m_screenAlignedQuad->draw();
+    ambientOcclusion(m_normalDepthAttachment, m_rotationTex, m_occlusionFbo);
     
     // blur ambient occlusion texture
     glViewport(
@@ -450,6 +421,7 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
         m_viewportCapability->y(),
         m_viewportCapability->width(),
         m_viewportCapability->height());
+    
     blur(m_occlusionAttachment, m_normalDepthAttachment, m_blurFbo);
     
     // finally, render to screen
@@ -476,8 +448,8 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion() {
     glDisable(GL_DEPTH_TEST);
 }
 
-void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output) {
-
+void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output)
+{
     // pass 1 (x)
     m_blurTmpFbo->bind();
     m_blurTmpFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
@@ -506,5 +478,45 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *norma
         "u_kernelSize", m_occlusionOptions->blurKernelSize(),
         "u_biliteral", m_occlusionOptions->biliteralBlurring()
     );
+    m_screenAlignedQuad->draw();
+}
+
+void AmbientOcclusion::ambientOcclusion(globjects::Texture *normalsDepth, globjects::Texture *rotation, globjects::Framebuffer *output)
+{
+    if (m_occlusionOptions->normalOriented())
+    {
+        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramNormalOriented);
+    }
+    else
+    {
+        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramCrytek);
+    }
+
+    output->bind();
+    output->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
+
+    m_screenAlignedQuad->setTextures({
+        { "u_normal_depth", normalsDepth },
+        { "u_rotation", rotation }
+    });
+    
+    m_screenAlignedQuad->setUniforms(
+        "u_invProj", glm::inverse(m_projectionCapability->projection()),
+        "u_proj", m_projectionCapability->projection(),
+        "u_farPlane", m_projectionCapability->zFar(),
+        "u_resolutionX", m_viewportCapability->width(),
+        "u_resolutionY", m_viewportCapability->height(),
+        "u_kernelSize", m_occlusionOptions->kernelSize(),
+        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
+        "u_attenuation", m_occlusionOptions->attenuation()
+    );
+    
+    glProgramUniform3fv(
+        m_screenAlignedQuad->program()->id(),
+        m_screenAlignedQuad->program()->getUniformLocation("kernel"),
+        m_occlusionOptions->kernelSize(),
+        glm::value_ptr((*m_kernel)[0])
+    );
+    
     m_screenAlignedQuad->draw();
 }

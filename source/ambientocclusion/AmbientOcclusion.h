@@ -52,7 +52,8 @@ public:
     void drawScreenSpaceAmbientOcclusion();
     void drawWithoutAmbientOcclusion();
     void blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output);
-
+    void ambientOcclusion(globjects::Texture *normalsDepth, globjects::Texture *rotation, globjects::Framebuffer *output);
+    
     std::vector<glm::vec3> getHemisphereKernel(int size);
     std::vector<glm::vec3> getRotationTexture(int size);
     
