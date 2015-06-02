@@ -49,6 +49,7 @@ set(api_includes
     ${include_path}/AmbientOcclusionOptions.h
     ${include_path}/AmbientOcclusionStage.h
     ${include_path}/ScreenAlignedQuadRenderer.h
+    ${include_path}/UniformHelper.h
     ${include_path}/Plane.h
 )
 

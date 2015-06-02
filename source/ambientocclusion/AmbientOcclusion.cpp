@@ -4,6 +4,7 @@
 #include "ScreenAlignedQuadRenderer.h"
 #include "AmbientOcclusionOptions.h"
 #include "AmbientOcclusionStage.h"
+#include "UniformHelper.h"
 
 #include <chrono>
 
@@ -51,7 +52,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
-,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions))
+,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions.get()))
 {
 }
 
@@ -87,7 +88,7 @@ void AmbientOcclusion::setupFramebuffers()
     m_blurFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurAttachment);
     m_blurTmpFbo = make_ref<Framebuffer>();
     m_blurTmpFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurTmpAttachment);
-    
+
     updateFramebuffers();
     
     m_modelFbo->printStatus(true);
@@ -105,6 +106,11 @@ void AmbientOcclusion::setupModel()
 
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
+}
+
+void AmbientOcclusion::setupKernelAndRotationTex()
+{
+    m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
 void AmbientOcclusion::setupShaders()
@@ -174,12 +180,12 @@ void AmbientOcclusion::onInitialize()
     // some magic numbers that give a good view on the teapot
     m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
-    
+
+    m_ambientOcclusionStage->initialize();
     setupFramebuffers();
     setupModel();
     setupShaders();
     setupProjection();
-    m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
 void AmbientOcclusion::drawScene()
@@ -281,8 +287,18 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
             m_viewportCapability->height() / 2);
     }
 
+    setUniforms(*m_ambientOcclusionStage->getUniformGroup(),
+        "u_invProj", glm::inverse(m_projectionCapability->projection()),
+        "u_proj", m_projectionCapability->projection(),
+        "u_farPlane", m_projectionCapability->zFar(),
+        "u_resolutionX", m_viewportCapability->width(),
+        "u_resolutionY", m_viewportCapability->height(),
+        "u_kernelSize", m_occlusionOptions->kernelSize(),
+        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
+        "u_attenuation", m_occlusionOptions->attenuation()
+    );
     m_ambientOcclusionStage->process(m_normalDepthAttachment);
-    
+
     // blur ambient occlusion texture
     glViewport(
         m_viewportCapability->x(),

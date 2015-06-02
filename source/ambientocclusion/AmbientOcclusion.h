@@ -46,6 +46,7 @@ public:
     void updateFramebuffers();
     void setupModel();
     void setupShaders();
+    void setupKernelAndRotationTex();
 
     void drawScene();
     void drawGrid();
@@ -65,6 +66,8 @@ protected:
     gloperate::AbstractCameraCapability * m_cameraCapability;
 
     /* members */
+    std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;
+
     std::unique_ptr<AmbientOcclusionStage> m_ambientOcclusionStage;
 
     globjects::ref_ptr<globjects::Framebuffer> m_modelFbo;
@@ -87,6 +90,4 @@ protected:
     std::vector<gloperate::PolygonalDrawable> m_drawables;
     std::unique_ptr<Plane> m_plane;
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
-    
-    std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;
 };

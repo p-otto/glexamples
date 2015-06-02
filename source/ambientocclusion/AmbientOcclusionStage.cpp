@@ -12,6 +12,7 @@
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
 
+#include <gloperate/primitives/UniformGroup.h>
 #include <gloperate/base/make_unique.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -19,8 +20,10 @@
 using namespace gl;
 using namespace globjects;
 
-AmbientOcclusionStage::AmbientOcclusionStage(const AmbientOcclusionOptions *options)
-:   m_randEngine(new std::default_random_engine(std::random_device{}()))
+AmbientOcclusionStage::AmbientOcclusionStage(const AmbientOcclusionOptions * options)
+:   m_occlusionOptions(options)
+,   m_randEngine(new std::default_random_engine(std::random_device{}()))
+,   m_uniformGroup(gloperate::make_unique<gloperate::UniformGroup>())
 {}
 
 void AmbientOcclusionStage::initialize()
@@ -31,8 +34,6 @@ void AmbientOcclusionStage::initialize()
 
     m_occlusionFbo = make_ref<Framebuffer>();
     m_occlusionFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_occlusionAttachment);
-
-    m_occlusionFbo->printStatus(true);
 
     m_ambientOcclusionProgramNormalOriented = new Program{};
     m_ambientOcclusionProgramNormalOriented->attach(
@@ -46,13 +47,15 @@ void AmbientOcclusionStage::initialize()
         Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
     );
 
+    setupKernelAndRotationTex();
 }
 
 void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
 {
     auto occlusionWidth = width, occlusionHeight = height;
 
-    if (m_occlusionOptions->halfResolution()) {
+    if (m_occlusionOptions->halfResolution())
+    {
         occlusionHeight /= 2;
         occlusionWidth /= 2;
     }
@@ -61,7 +64,7 @@ void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
     m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 }
 
-void AmbientOcclusionStage::process(globjects::Texture *normalsDepth, )
+void AmbientOcclusionStage::process(globjects::Texture *normalsDepth)
 {
     if (m_occlusionOptions->normalOriented())
     {
@@ -80,16 +83,7 @@ void AmbientOcclusionStage::process(globjects::Texture *normalsDepth, )
         { "u_rotation", m_rotationTex }
     });
 
-    m_screenAlignedQuad->setUniforms(
-                                     "u_invProj", glm::inverse(m_projectionCapability->projection()),
-                                     "u_proj", m_projectionCapability->projection(),
-                                     "u_farPlane", m_projectionCapability->zFar(),
-                                     "u_resolutionX", m_viewportCapability->width(),
-                                     "u_resolutionY", m_viewportCapability->height(),
-                                     "u_kernelSize", m_occlusionOptions->kernelSize(),
-                                     "u_kernelRadius", m_occlusionOptions->kernelRadius(),
-                                     "u_attenuation", m_occlusionOptions->attenuation()
-                                     );
+    m_uniformGroup->addToProgram(m_screenAlignedQuad->program());
     
     glProgramUniform3fv(
         m_screenAlignedQuad->program()->id(),
@@ -104,6 +98,11 @@ void AmbientOcclusionStage::process(globjects::Texture *normalsDepth, )
 globjects::Texture* AmbientOcclusionStage::getOcclusionTexture()
 {
     return m_occlusionAttachment;
+}
+
+gloperate::UniformGroup* AmbientOcclusionStage::getUniformGroup()
+{
+    return m_uniformGroup.get();
 }
 
 void AmbientOcclusionStage::setupKernelAndRotationTex()

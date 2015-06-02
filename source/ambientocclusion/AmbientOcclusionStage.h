@@ -30,7 +30,9 @@ public:
 
     void initialize();
     void process(globjects::Texture *normalsDepth);
-    globjects::Texture* getOcclusionTexture();
+
+    globjects::Texture * getOcclusionTexture();
+    gloperate::UniformGroup * getUniformGroup();
 
     void setupKernelAndRotationTex();
     void updateFramebuffer(const int width, const int height);
@@ -48,14 +50,13 @@ protected:
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramNormalOriented;
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramCrytek;
 
-    globjects::ref_ptr<gloperate::UniformGroup> m_uniformGroup;
-
     const AmbientOcclusionOptions * m_occlusionOptions;
 
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     std::vector<glm::vec3> m_kernel;
 
     std::unique_ptr<std::default_random_engine> m_randEngine;
+    std::unique_ptr<gloperate::UniformGroup> m_uniformGroup;
 
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
 };
