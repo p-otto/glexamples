@@ -45,13 +45,14 @@ protected:
     std::vector<glm::vec3> getSphereKernel(int size);
     std::vector<glm::vec3> getReflectionTexture(int size);
 
+    /* members */
+    const AmbientOcclusionOptions * m_occlusionOptions;
+
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
 
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramNormalOriented;
     globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramCrytek;
-
-    const AmbientOcclusionOptions * m_occlusionOptions;
 
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     std::vector<glm::vec3> m_kernel;

@@ -15,11 +15,6 @@ namespace globjects
     class Texture;
 }
 
-namespace gloperate
-{
-    class UniformGroup;
-}
-
 class BlurStage
 {
 public:
@@ -34,6 +29,8 @@ public:
     void updateFramebuffer(const int width, const int height);
     
 protected:
+    const AmbientOcclusionOptions * m_occlusionOptions;
+    
     globjects::ref_ptr<globjects::Framebuffer> m_blurFbo;
     globjects::ref_ptr<globjects::Framebuffer> m_blurTmpFbo;
     globjects::ref_ptr<globjects::Texture> m_blurAttachment;
@@ -43,6 +40,4 @@ protected:
     globjects::ref_ptr<globjects::Program> m_blurYProgram;
 
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
-
-    const AmbientOcclusionOptions * m_occlusionOptions;
 };

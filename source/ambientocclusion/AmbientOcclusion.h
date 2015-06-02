@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <random>
 
 #include <glbinding/gl/types.h>
 
@@ -9,14 +8,12 @@
 
 #include <gloperate/painter/Painter.h>
 
-#include <glm/glm.hpp>
-
-class Plane;
 class ScreenAlignedQuadRenderer;
 class AmbientOcclusionOptions;
 
 class AmbientOcclusionStage;
 class BlurStage;
+class GeometryStage;
 
 namespace globjects
 {
@@ -33,8 +30,6 @@ namespace gloperate
     class AbstractViewportCapability;
     class AbstractPerspectiveProjectionCapability;
     class AbstractCameraCapability;
-    class PolygonalDrawable;
-    class ScreenAlignedQuad;
 }
 
 class AmbientOcclusion : public gloperate::Painter
@@ -44,17 +39,14 @@ public:
     virtual ~AmbientOcclusion();
 
     void setupProjection();
-    void setupFramebuffers();
     void updateFramebuffers();
-    void setupModel();
     void setupShaders();
     void setupKernelAndRotationTex();
 
-    void drawScene();
     void drawGrid();
+    void drawGeometry();
     void drawScreenSpaceAmbientOcclusion();
     void drawWithoutAmbientOcclusion();
-    void blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output);
 
 protected:
     virtual void onInitialize() override;
@@ -72,18 +64,10 @@ protected:
 
     std::unique_ptr<AmbientOcclusionStage> m_ambientOcclusionStage;
     std::unique_ptr<BlurStage> m_blurStage;
-
-    globjects::ref_ptr<globjects::Framebuffer> m_modelFbo;
-    globjects::ref_ptr<globjects::Texture> m_colorAttachment;
-    globjects::ref_ptr<globjects::Texture> m_normalDepthAttachment;
-    globjects::ref_ptr<globjects::Texture> m_depthBuffer;
+    std::unique_ptr<GeometryStage> m_geometryStage;
     
-    globjects::ref_ptr<globjects::Program> m_modelProgram;
-    globjects::ref_ptr<globjects::Program> m_phongProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    std::vector<gloperate::PolygonalDrawable> m_drawables;
-    std::unique_ptr<Plane> m_plane;
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
 };
