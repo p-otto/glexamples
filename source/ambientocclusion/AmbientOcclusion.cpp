@@ -3,6 +3,7 @@
 #include "Plane.h"
 #include "ScreenAlignedQuadRenderer.h"
 #include "AmbientOcclusionOptions.h"
+#include "AmbientOcclusionStage.h"
 
 #include <chrono>
 
@@ -50,7 +51,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
-,   m_randEngine(new std::default_random_engine(std::random_device{}()))
+,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions))
 {
 }
 
@@ -73,8 +74,6 @@ void AmbientOcclusion::setupFramebuffers()
     m_normalDepthAttachment = Texture::createDefault(GL_TEXTURE_2D);
     m_depthBuffer = Texture::createDefault(GL_TEXTURE_2D);
     
-    m_occlusionAttachment = Texture::createDefault(GL_TEXTURE_2D);
-    
     m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
     m_blurTmpAttachment = Texture::createDefault(GL_TEXTURE_2D);
     
@@ -84,9 +83,6 @@ void AmbientOcclusion::setupFramebuffers()
     m_modelFbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthBuffer);
     m_modelFbo->setDrawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
     
-    m_occlusionFbo = make_ref<Framebuffer>();
-    m_occlusionFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_occlusionAttachment);
-    
     m_blurFbo = make_ref<Framebuffer>();
     m_blurFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurAttachment);
     m_blurTmpFbo = make_ref<Framebuffer>();
@@ -95,7 +91,6 @@ void AmbientOcclusion::setupFramebuffers()
     updateFramebuffers();
     
     m_modelFbo->printStatus(true);
-    m_occlusionFbo->printStatus(true);
     m_blurFbo->printStatus(true);
     m_blurTmpFbo->printStatus(true);
 }
@@ -112,29 +107,6 @@ void AmbientOcclusion::setupModel()
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 }
 
-void AmbientOcclusion::setupKernelAndRotationTex()
-{
-    std::vector<glm::vec3> rotationValues;
-    if (m_occlusionOptions->normalOriented()) {
-        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getHemisphereKernel(m_occlusionOptions->maxKernelSize()));
-        rotationValues = getRotationTexture(m_occlusionOptions->rotationTexSize());
-    }
-    else {
-        m_kernel = gloperate::make_unique<std::vector<glm::vec3>>(getSphereKernel(m_occlusionOptions->maxKernelSize()));
-        rotationValues = getReflectionTexture(m_occlusionOptions->rotationTexSize());
-    }
-
-    if (!m_rotationTex)
-    {
-        m_rotationTex = Texture::createDefault(GL_TEXTURE_2D);
-        m_rotationTex->setParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
-        m_rotationTex->setParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
-        m_rotationTex->setParameter(GL_TEXTURE_WRAP_R, GL_REPEAT);
-    }
-
-    m_rotationTex->image2D(0, GL_RGB32F, m_occlusionOptions->rotationTexSize(), m_occlusionOptions->rotationTexSize(), 0, GL_RGB, GL_FLOAT, rotationValues.data());
-}
-
 void AmbientOcclusion::setupShaders()
 {
     m_modelProgram = new Program{};
@@ -148,19 +120,7 @@ void AmbientOcclusion::setupShaders()
                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag")
     );
-    
-    m_ambientOcclusionProgramNormalOriented = new Program{};
-    m_ambientOcclusionProgramNormalOriented->attach(
-                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
-    );
-        
-    m_ambientOcclusionProgramCrytek = new Program{};
-    m_ambientOcclusionProgramCrytek->attach(
-                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_crytek.frag")
-    );
-    
+
     m_blurXProgram = new Program{};
     m_blurXProgram->attach(
                             Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
@@ -183,107 +143,15 @@ void AmbientOcclusion::setupShaders()
 void AmbientOcclusion::updateFramebuffers()
 {
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
-    auto occlusionWidth = width, occlusionHeight = height;
     
     m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     m_normalDepthAttachment->image2D(0, GL_RGBA16, width, height, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
     m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
-    
-    if (m_occlusionOptions->halfResolution()) {
-        occlusionHeight /= 2;
-        occlusionWidth /= 2;
-    }
 
-    m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    
+    m_ambientOcclusionStage->updateFramebuffer(width, height);
+
     m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-}
-
-std::vector<glm::vec3> AmbientOcclusion::getHemisphereKernel(int size)
-{
-    std::vector<glm::vec3> kernel(size);
-    int count = 1;
-    
-    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-    std::uniform_real_distribution<float> positive_distribution(0.0, 1.0);
-
-    for (auto &vec : kernel)
-    {
-        do {
-            vec[0] = distribution(*m_randEngine);
-            vec[1] = distribution(*m_randEngine);
-            vec[2] = positive_distribution(*m_randEngine);
-        } while(glm::dot(vec, glm::vec3(0,0,1)) < m_occlusionOptions->minimalKernelAngle());
-        
-        vec = glm::normalize(vec);
-        
-        float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_occlusionOptions->minimalKernelLength(), 1.0f, scale * scale);
-        vec *= scale;
-    }
-    
-    return kernel;
-}
-
-std::vector<glm::vec3> AmbientOcclusion::getSphereKernel(int size)
-{
-    std::vector<glm::vec3> kernel(size);
-    int count = 1;
-    
-    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-
-    for (auto &vec : kernel)
-    {
-        vec[0] = distribution(*m_randEngine);
-        vec[1] = distribution(*m_randEngine);
-        vec[2] = distribution(*m_randEngine);
-        
-        vec = glm::normalize(vec);
-        
-        float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_occlusionOptions->minimalKernelLength(), 1.0f, scale * scale);
-        vec *= scale;
-    }
-    
-    return kernel;
-}
-
-std::vector<glm::vec3> AmbientOcclusion::getRotationTexture(int size)
-{
-    std::vector<glm::vec3> tex(size * size);
-    
-    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-
-    for (auto &vec : tex)
-    {
-        vec[0] = distribution(*m_randEngine);
-        vec[1] = distribution(*m_randEngine);
-        vec[2] = 0.0f;
-        
-        vec = glm::normalize(vec);
-    }
-    
-    return tex;
-}
-
-std::vector<glm::vec3> AmbientOcclusion::getReflectionTexture(int size)
-{
-    std::vector<glm::vec3> tex(size * size);
-    
-    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-
-    for (auto &vec : tex)
-    {
-        vec[0] = distribution(*m_randEngine);
-        vec[1] = distribution(*m_randEngine);
-        vec[2] = distribution(*m_randEngine);
-        
-        vec = glm::normalize(vec);
-    }
-    
-    return tex;
 }
 
 void AmbientOcclusion::onInitialize()
@@ -311,7 +179,7 @@ void AmbientOcclusion::onInitialize()
     setupModel();
     setupShaders();
     setupProjection();
-    setupKernelAndRotationTex();
+    m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
 void AmbientOcclusion::drawScene()
@@ -412,8 +280,8 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
             m_viewportCapability->width() / 2,
             m_viewportCapability->height() / 2);
     }
-    
-    ambientOcclusion(m_normalDepthAttachment, m_rotationTex, m_occlusionFbo);
+
+    m_ambientOcclusionStage->process(m_normalDepthAttachment);
     
     // blur ambient occlusion texture
     glViewport(
@@ -421,8 +289,9 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
         m_viewportCapability->y(),
         m_viewportCapability->width(),
         m_viewportCapability->height());
-    
-    blur(m_occlusionAttachment, m_normalDepthAttachment, m_blurFbo);
+
+    auto occlusionTexture = m_ambientOcclusionStage->getOcclusionTexture();
+    blur(occlusionTexture, m_normalDepthAttachment, m_blurFbo);
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
@@ -478,45 +347,5 @@ void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *norma
         "u_kernelSize", m_occlusionOptions->blurKernelSize(),
         "u_biliteral", m_occlusionOptions->biliteralBlurring()
     );
-    m_screenAlignedQuad->draw();
-}
-
-void AmbientOcclusion::ambientOcclusion(globjects::Texture *normalsDepth, globjects::Texture *rotation, globjects::Framebuffer *output)
-{
-    if (m_occlusionOptions->normalOriented())
-    {
-        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramNormalOriented);
-    }
-    else
-    {
-        m_screenAlignedQuad->setProgram(m_ambientOcclusionProgramCrytek);
-    }
-
-    output->bind();
-    output->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
-
-    m_screenAlignedQuad->setTextures({
-        { "u_normal_depth", normalsDepth },
-        { "u_rotation", rotation }
-    });
-    
-    m_screenAlignedQuad->setUniforms(
-        "u_invProj", glm::inverse(m_projectionCapability->projection()),
-        "u_proj", m_projectionCapability->projection(),
-        "u_farPlane", m_projectionCapability->zFar(),
-        "u_resolutionX", m_viewportCapability->width(),
-        "u_resolutionY", m_viewportCapability->height(),
-        "u_kernelSize", m_occlusionOptions->kernelSize(),
-        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
-        "u_attenuation", m_occlusionOptions->attenuation()
-    );
-    
-    glProgramUniform3fv(
-        m_screenAlignedQuad->program()->id(),
-        m_screenAlignedQuad->program()->getUniformLocation("kernel"),
-        m_occlusionOptions->kernelSize(),
-        glm::value_ptr((*m_kernel)[0])
-    );
-    
     m_screenAlignedQuad->draw();
 }

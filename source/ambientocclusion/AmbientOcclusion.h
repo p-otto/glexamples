@@ -14,6 +14,7 @@
 class Plane;
 class ScreenAlignedQuadRenderer;
 class AmbientOcclusionOptions;
+class AmbientOcclusionStage;
 
 namespace globjects
 {
@@ -45,20 +46,12 @@ public:
     void updateFramebuffers();
     void setupModel();
     void setupShaders();
-    void setupKernelAndRotationTex();
 
     void drawScene();
     void drawGrid();
     void drawScreenSpaceAmbientOcclusion();
     void drawWithoutAmbientOcclusion();
     void blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output);
-    void ambientOcclusion(globjects::Texture *normalsDepth, globjects::Texture *rotation, globjects::Framebuffer *output);
-    
-    std::vector<glm::vec3> getHemisphereKernel(int size);
-    std::vector<glm::vec3> getRotationTexture(int size);
-    
-    std::vector<glm::vec3> getSphereKernel(int size);
-    std::vector<glm::vec3> getReflectionTexture(int size);
 
 protected:
     virtual void onInitialize() override;
@@ -72,13 +65,12 @@ protected:
     gloperate::AbstractCameraCapability * m_cameraCapability;
 
     /* members */
+    std::unique_ptr<AmbientOcclusionStage> m_ambientOcclusionStage;
+
     globjects::ref_ptr<globjects::Framebuffer> m_modelFbo;
     globjects::ref_ptr<globjects::Texture> m_colorAttachment;
     globjects::ref_ptr<globjects::Texture> m_normalDepthAttachment;
     globjects::ref_ptr<globjects::Texture> m_depthBuffer;
-    
-    globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
-    globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
     
     globjects::ref_ptr<globjects::Framebuffer> m_blurFbo;
     globjects::ref_ptr<globjects::Framebuffer> m_blurTmpFbo;
@@ -87,14 +79,9 @@ protected:
     
     globjects::ref_ptr<globjects::Program> m_modelProgram;
     globjects::ref_ptr<globjects::Program> m_phongProgram;
-    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramNormalOriented;
-    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramCrytek;
     globjects::ref_ptr<globjects::Program> m_blurXProgram;
     globjects::ref_ptr<globjects::Program> m_blurYProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
-    
-    std::unique_ptr<std::vector<glm::vec3>> m_kernel;
-    globjects::ref_ptr<globjects::Texture> m_rotationTex;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
     std::vector<gloperate::PolygonalDrawable> m_drawables;
@@ -102,6 +89,4 @@ protected:
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
     
     std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;
-
-    std::unique_ptr<std::default_random_engine> m_randEngine;
 };
