@@ -14,7 +14,9 @@
 class Plane;
 class ScreenAlignedQuadRenderer;
 class AmbientOcclusionOptions;
+
 class AmbientOcclusionStage;
+class BlurStage;
 
 namespace globjects
 {
@@ -69,21 +71,15 @@ protected:
     std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;
 
     std::unique_ptr<AmbientOcclusionStage> m_ambientOcclusionStage;
+    std::unique_ptr<BlurStage> m_blurStage;
 
     globjects::ref_ptr<globjects::Framebuffer> m_modelFbo;
     globjects::ref_ptr<globjects::Texture> m_colorAttachment;
     globjects::ref_ptr<globjects::Texture> m_normalDepthAttachment;
     globjects::ref_ptr<globjects::Texture> m_depthBuffer;
     
-    globjects::ref_ptr<globjects::Framebuffer> m_blurFbo;
-    globjects::ref_ptr<globjects::Framebuffer> m_blurTmpFbo;
-    globjects::ref_ptr<globjects::Texture> m_blurAttachment;
-    globjects::ref_ptr<globjects::Texture> m_blurTmpAttachment;
-    
     globjects::ref_ptr<globjects::Program> m_modelProgram;
     globjects::ref_ptr<globjects::Program> m_phongProgram;
-    globjects::ref_ptr<globjects::Program> m_blurXProgram;
-    globjects::ref_ptr<globjects::Program> m_blurYProgram;
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;

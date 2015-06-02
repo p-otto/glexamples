@@ -4,6 +4,7 @@
 #include "ScreenAlignedQuadRenderer.h"
 #include "AmbientOcclusionOptions.h"
 #include "AmbientOcclusionStage.h"
+#include "BlurStage.h"
 #include "UniformHelper.h"
 
 #include <chrono>
@@ -53,6 +54,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
 ,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions.get()))
+,   m_blurStage(gloperate::make_unique<BlurStage>(m_occlusionOptions.get()))
 {
 }
 
@@ -75,25 +77,15 @@ void AmbientOcclusion::setupFramebuffers()
     m_normalDepthAttachment = Texture::createDefault(GL_TEXTURE_2D);
     m_depthBuffer = Texture::createDefault(GL_TEXTURE_2D);
     
-    m_blurAttachment = Texture::createDefault(GL_TEXTURE_2D);
-    m_blurTmpAttachment = Texture::createDefault(GL_TEXTURE_2D);
-    
     m_modelFbo = make_ref<Framebuffer>();
     m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
     m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT1, m_normalDepthAttachment);
     m_modelFbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthBuffer);
     m_modelFbo->setDrawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
-    
-    m_blurFbo = make_ref<Framebuffer>();
-    m_blurFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurAttachment);
-    m_blurTmpFbo = make_ref<Framebuffer>();
-    m_blurTmpFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_blurTmpAttachment);
 
     updateFramebuffers();
     
     m_modelFbo->printStatus(true);
-    m_blurFbo->printStatus(true);
-    m_blurTmpFbo->printStatus(true);
 }
 
 void AmbientOcclusion::setupModel()
@@ -127,18 +119,6 @@ void AmbientOcclusion::setupShaders()
                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag")
     );
 
-    m_blurXProgram = new Program{};
-    m_blurXProgram->attach(
-                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_x.frag")
-    );
-    
-    m_blurYProgram = new Program{};
-    m_blurYProgram->attach(
-                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/blur_y.frag")
-    );
-    
     m_mixProgram = new Program{};
     m_mixProgram->attach(
                             Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
@@ -155,9 +135,7 @@ void AmbientOcclusion::updateFramebuffers()
     m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
 
     m_ambientOcclusionStage->updateFramebuffer(width, height);
-
-    m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_blurStage->updateFramebuffer(width, height);
 }
 
 void AmbientOcclusion::onInitialize()
@@ -182,6 +160,7 @@ void AmbientOcclusion::onInitialize()
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
 
     m_ambientOcclusionStage->initialize();
+    m_blurStage->initialize();
     setupFramebuffers();
     setupModel();
     setupShaders();
@@ -307,7 +286,7 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
         m_viewportCapability->height());
 
     auto occlusionTexture = m_ambientOcclusionStage->getOcclusionTexture();
-    blur(occlusionTexture, m_normalDepthAttachment, m_blurFbo);
+    m_blurStage->process(occlusionTexture, m_normalDepthAttachment);
     
     // finally, render to screen
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
@@ -324,44 +303,11 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     
     m_screenAlignedQuad->setTextures({
         { "u_color", m_colorAttachment },
-        { "u_blur", m_blurAttachment },
+        { "u_blur", m_blurStage->getBlurredTexture() },
         { "u_normal_depth", m_depthBuffer }
     });
     
     m_screenAlignedQuad->draw();
 
     glDisable(GL_DEPTH_TEST);
-}
-
-void AmbientOcclusion::blur(globjects::Texture *input, globjects::Texture *normals, globjects::Framebuffer *output)
-{
-    // pass 1 (x)
-    m_blurTmpFbo->bind();
-    m_blurTmpFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
-
-    m_screenAlignedQuad->setProgram(m_blurXProgram);
-    m_screenAlignedQuad->setTextures({
-        { "u_occlusion", input },
-        { "u_normal_depth", normals }
-    });
-    m_screenAlignedQuad->setUniforms(
-        "u_kernelSize", m_occlusionOptions->blurKernelSize(),
-        "u_biliteral", m_occlusionOptions->biliteralBlurring()
-    );
-    m_screenAlignedQuad->draw();
-
-    // pass 2 (y)
-    output->bind();
-    output->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
-
-    m_screenAlignedQuad->setProgram(m_blurYProgram);
-    m_screenAlignedQuad->setTextures({
-        { "u_occlusion", m_blurTmpAttachment },
-        { "u_normal_depth", normals }
-    });
-    m_screenAlignedQuad->setUniforms(
-        "u_kernelSize", m_occlusionOptions->blurKernelSize(),
-        "u_biliteral", m_occlusionOptions->biliteralBlurring()
-    );
-    m_screenAlignedQuad->draw();
 }

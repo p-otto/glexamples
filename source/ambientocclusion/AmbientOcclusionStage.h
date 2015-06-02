@@ -27,6 +27,7 @@ class AmbientOcclusionStage
 {
 public:
     AmbientOcclusionStage(const AmbientOcclusionOptions *options);
+    ~AmbientOcclusionStage() = default;
 
     void initialize();
     void process(globjects::Texture *normalsDepth);
