@@ -14,6 +14,7 @@ class AmbientOcclusionOptions;
 class AmbientOcclusionStage;
 class BlurStage;
 class GeometryStage;
+class MixStage;
 
 namespace globjects
 {
@@ -65,6 +66,7 @@ protected:
     std::unique_ptr<AmbientOcclusionStage> m_ambientOcclusionStage;
     std::unique_ptr<BlurStage> m_blurStage;
     std::unique_ptr<GeometryStage> m_geometryStage;
+    std::unique_ptr<MixStage> m_mixStage;
     
     globjects::ref_ptr<globjects::Program> m_mixProgram;
     

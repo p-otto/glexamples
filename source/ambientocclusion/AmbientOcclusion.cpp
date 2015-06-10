@@ -8,6 +8,7 @@
 #include "AmbientOcclusionStage.h"
 #include "BlurStage.h"
 #include "GeometryStage.h"
+#include "MixStage.h"
 
 #include <chrono>
 
@@ -58,6 +59,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions.get()))
 ,   m_blurStage(gloperate::make_unique<BlurStage>(m_occlusionOptions.get()))
 ,   m_geometryStage(gloperate::make_unique<GeometryStage>(m_occlusionOptions.get()))
+,   m_mixStage(gloperate::make_unique<MixStage>(m_occlusionOptions.get()))
 {
 }
 
@@ -125,6 +127,7 @@ void AmbientOcclusion::onInitialize()
     m_ambientOcclusionStage->initialize();
     m_blurStage->initialize();
     m_geometryStage->initialize(scene);
+    m_mixStage->initialize();
     
     updateFramebuffers();
     setupShaders();
@@ -246,18 +249,10 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glEnable(GL_DEPTH_TEST);
-    
-    m_screenAlignedQuad->setProgram(m_mixProgram);
 
     auto blurTexture = m_blurStage->getBlurredTexture();
     auto colorTexture = m_geometryStage->getColorTexture();
-    m_screenAlignedQuad->setTextures({
-        { "u_color", colorTexture },
-        { "u_blur", blurTexture },
-        { "u_normal_depth", normalDepthTexture }
-    });
-    
-    m_screenAlignedQuad->draw();
+    m_mixStage->process(colorTexture, blurTexture, normalDepthTexture);
 
     glDisable(GL_DEPTH_TEST);
 }
