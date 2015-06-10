@@ -64,7 +64,7 @@ void main()
         ndc_sample_point.xy *= 0.5;
         ndc_sample_point.xy += 0.5;
 
-        if (ndc_sample_point.x > 1 || ndc_sample_point.y > 1 || ndc_sample_point.x < 0 || ndc_sample_point.y <0)
+        if (ndc_sample_point.x > 1 || ndc_sample_point.y > 1 || ndc_sample_point.x < 0 || ndc_sample_point.y < 0)
         {
             continue;
         }
@@ -89,4 +89,9 @@ void main()
     }
 
     occlusion /= u_kernelSize;
+
+    if (depth > 0.99)
+    {
+        occlusion = 0.0;
+    }
 }

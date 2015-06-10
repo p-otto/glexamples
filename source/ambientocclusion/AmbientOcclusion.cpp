@@ -152,6 +152,7 @@ void AmbientOcclusion::onPaint()
             drawWithoutAmbientOcclusion();
             break;
         case ScreenSpace:
+            drawWithoutAmbientOcclusion(); // HACK: get depth information into default framebuffer for testing against grid and navigation
             drawScreenSpaceAmbientOcclusion();
             break;
     }
@@ -177,6 +178,9 @@ void AmbientOcclusion::drawGrid()
 
 void AmbientOcclusion::drawGeometry()
 {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
     glm::mat4 model;
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
@@ -184,6 +188,9 @@ void AmbientOcclusion::drawGeometry()
         "u_farPlane", m_projectionCapability->zFar()
     );
     m_geometryStage->process();
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 }
 
 void AmbientOcclusion::drawWithoutAmbientOcclusion() {
@@ -203,6 +210,9 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     // draw geometry to texture
     m_geometryStage->bindAndClearFbo();
     drawGeometry();
+
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_ALWAYS);
     
     // calculate ambient occlusion
     if (m_occlusionOptions->halfResolution())
@@ -244,15 +254,14 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     if (!default_framebuffer) {
         default_framebuffer = globjects::Framebuffer::defaultFBO();
     }
-    
+
     default_framebuffer->bind(GL_FRAMEBUFFER);
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glEnable(GL_DEPTH_TEST);
 
     auto blurTexture = m_blurStage->getBlurredTexture();
     auto colorTexture = m_geometryStage->getColorTexture();
     m_mixStage->process(colorTexture, blurTexture, normalDepthTexture);
 
-    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
 }

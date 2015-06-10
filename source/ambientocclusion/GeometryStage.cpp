@@ -6,6 +6,7 @@
 #include <glbinding/gl/enum.h>
 #include <glbinding/gl/bitfield.h>
 #include <glbinding/gl/functions.h>
+#include <glbinding/gl/boolean.h>
 
 #include <globjects/Texture.h>
 #include <globjects/Framebuffer.h>
@@ -72,9 +73,6 @@ void GeometryStage::updateFramebuffer(const int width, const int height)
 
 void GeometryStage::process()
 {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
     auto program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
 
     program->use();
@@ -88,9 +86,6 @@ void GeometryStage::process()
     }
 
     program->release();
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
 }
 
 void GeometryStage::bindAndClearFbo()
