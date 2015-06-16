@@ -81,15 +81,6 @@ void AmbientOcclusion::setupKernelAndRotationTex()
     m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
-void AmbientOcclusion::setupShaders()
-{
-    m_mixProgram = new Program{};
-    m_mixProgram->attach(
-                            Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-                            Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/mix.frag")
-    );
-}
-
 void AmbientOcclusion::updateFramebuffers()
 {
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
@@ -130,7 +121,6 @@ void AmbientOcclusion::onInitialize()
     m_mixStage->initialize();
     
     updateFramebuffers();
-    setupShaders();
     setupProjection();
 }
 
@@ -163,8 +153,7 @@ void AmbientOcclusion::onPaint()
 void AmbientOcclusion::drawGrid()
 {
     // move grid below plane
-    glm::mat4 model;
-    model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+    glm::mat4 model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
     const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * model;
     const auto eye = m_cameraCapability->eye();
     
@@ -181,7 +170,7 @@ void AmbientOcclusion::drawGeometry()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glm::mat4 model;
+    glm::mat4 model{};
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,

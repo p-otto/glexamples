@@ -1,7 +1,7 @@
 #version 150 core
 #extension GL_ARB_explicit_attrib_location : require
 
-in vec3 v_normal;
+flat in vec3 v_normal;
 in float v_depth;
 
 uniform float u_farPlane;
