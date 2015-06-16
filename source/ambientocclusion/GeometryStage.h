@@ -33,6 +33,7 @@ public:
 
     void bindAndClearFbo();
 
+    globjects::Framebuffer * getFramebuffer();
     globjects::Texture * getColorTexture();
     globjects::Texture * getNormalDepthTexture();
 

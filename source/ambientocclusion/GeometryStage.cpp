@@ -96,6 +96,11 @@ void GeometryStage::bindAndClearFbo()
     m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 }
 
+globjects::Framebuffer * GeometryStage::getFramebuffer()
+{
+    return m_modelFbo;
+}
+
 globjects::Texture * GeometryStage::getColorTexture()
 {
     return m_colorAttachment;
