@@ -5,7 +5,7 @@
 #include "AmbientOcclusionOptions.h"
 #include "UniformHelper.h"
 
-#include "AmbientOcclusionStage.h"
+#include "AmbientOcclusionHemisphereStage.h"
 #include "BlurStage.h"
 #include "GeometryStage.h"
 #include "MixStage.h"
@@ -56,7 +56,7 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
-,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions.get()))
+,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionHemisphereStage>(m_occlusionOptions.get()))
 ,   m_blurStage(gloperate::make_unique<BlurStage>(m_occlusionOptions.get()))
 ,   m_geometryStage(gloperate::make_unique<GeometryStage>(m_occlusionOptions.get()))
 ,   m_mixStage(gloperate::make_unique<MixStage>(m_occlusionOptions.get()))
@@ -153,7 +153,8 @@ void AmbientOcclusion::onPaint()
 void AmbientOcclusion::drawGrid()
 {
     // move grid below plane
-    glm::mat4 model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+    glm::mat4 model{};
+    model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
     const auto transform = m_projectionCapability->projection() * m_cameraCapability->view() * model;
     const auto eye = m_cameraCapability->eye();
     

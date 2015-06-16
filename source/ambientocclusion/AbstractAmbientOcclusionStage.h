@@ -23,11 +23,11 @@ namespace gloperate
     class UniformGroup;
 }
 
-class AmbientOcclusionStage
+class AbstractAmbientOcclusionStage
 {
 public:
-    AmbientOcclusionStage(const AmbientOcclusionOptions *options);
-    ~AmbientOcclusionStage() = default;
+    AbstractAmbientOcclusionStage(const AmbientOcclusionOptions *options);
+    ~AbstractAmbientOcclusionStage() = default;
 
     void initialize();
     void process(globjects::Texture *normalsDepth);
@@ -39,11 +39,10 @@ public:
     void updateFramebuffer(const int width, const int height);
 
 protected:
-    std::vector<glm::vec3> getHemisphereKernel(int size);
-    std::vector<glm::vec3> getRotationTexture(int size);
+    virtual void initializeShaders() = 0;
 
-    std::vector<glm::vec3> getSphereKernel(int size);
-    std::vector<glm::vec3> getReflectionTexture(int size);
+    virtual std::vector<glm::vec3> getKernel(int size) = 0;
+    virtual std::vector<glm::vec3> getNoiseTexture(int size) = 0;
 
     /* members */
     const AmbientOcclusionOptions * m_occlusionOptions;
@@ -51,8 +50,7 @@ protected:
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
 
-    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramNormalOriented;
-    globjects::ref_ptr<globjects::Program> m_ambientOcclusionProgramCrytek;
+    globjects::ref_ptr<globjects::Program> m_program;
 
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     std::vector<glm::vec3> m_kernel;
