@@ -2,10 +2,6 @@
 
 #include "AbstractAmbientOcclusionStage.h"
 
-#include <vector>
-
-#include <glm/glm.hpp>
-
 class AmbientOcclusionOptions;
 
 class AmbientOcclusionNoneStage : public AbstractAmbientOcclusionStage

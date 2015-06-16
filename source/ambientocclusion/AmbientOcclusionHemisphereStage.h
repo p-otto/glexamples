@@ -2,12 +2,6 @@
 
 #include "AbstractAmbientOcclusionStage.h"
 
-#include <vector>
-
-#include <globjects/base/ref_ptr.h>
-
-#include <glm/glm.hpp>
-
 class AmbientOcclusionOptions;
 
 class AmbientOcclusionHemisphereStage : public AbstractAmbientOcclusionStage
