@@ -2,10 +2,11 @@
 
 #include "Plane.h"
 #include "ScreenAlignedQuadRenderer.h"
-#include "AmbientOcclusionOptions.h"
 #include "UniformHelper.h"
 
 #include "AmbientOcclusionHemisphereStage.h"
+#include "AmbientOcclusionSphereStage.h"
+#include "AmbientOcclusionNoneStage.h"
 #include "BlurStage.h"
 #include "GeometryStage.h"
 #include "MixStage.h"
@@ -81,6 +82,25 @@ void AmbientOcclusion::setupKernelAndRotationTex()
     m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
+void AmbientOcclusion::setAmbientOcclusion(const AmbientOcclusionType &type)
+{
+    switch (type) {
+        case ScreenSpaceSphere:
+            m_ambientOcclusionStage = gloperate::make_unique<AmbientOcclusionSphereStage>(m_occlusionOptions.get());
+            break;
+
+        case ScreenSpaceHemisphere:
+            m_ambientOcclusionStage = gloperate::make_unique<AmbientOcclusionHemisphereStage>(m_occlusionOptions.get());
+            break;
+
+        default:
+            m_ambientOcclusionStage = gloperate::make_unique<AmbientOcclusionNoneStage>(m_occlusionOptions.get());
+            break;
+    }
+
+    m_ambientOcclusionStage->initialize();
+}
+
 void AmbientOcclusion::updateFramebuffers()
 {
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
@@ -137,15 +157,7 @@ void AmbientOcclusion::onPaint()
         updateFramebuffers();
     }
     
-    switch (m_occlusionOptions->ambientOcclusion()) {
-        case None:
-            drawWithoutAmbientOcclusion();
-            break;
-        case ScreenSpace:
-            drawWithoutAmbientOcclusion(); // HACK: get depth information into default framebuffer for testing against grid and navigation
-            drawScreenSpaceAmbientOcclusion();
-            break;
-    }
+    drawScreenSpaceAmbientOcclusion();
 
     drawGrid();
 }
@@ -181,18 +193,6 @@ void AmbientOcclusion::drawGeometry()
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
-}
-
-void AmbientOcclusion::drawWithoutAmbientOcclusion() {
-    auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
-    if (!default_framebuffer) {
-        default_framebuffer = globjects::Framebuffer::defaultFBO();
-    }
-
-    default_framebuffer->bind(GL_FRAMEBUFFER);
-    default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    drawGeometry();
 }
 
 void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()

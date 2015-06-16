@@ -2,7 +2,7 @@
 
 class AmbientOcclusion;
 
-enum AmbientOcclusionType { None, ScreenSpace };
+enum AmbientOcclusionType { None, ScreenSpaceSphere, ScreenSpaceHemisphere };
 
 class AmbientOcclusionOptions
 {
@@ -25,9 +25,6 @@ public:
     
     int blurKernelSize() const;
     void setblurKernelSize(int blurKernelSize);
-    
-    bool normalOriented() const;
-    void setNormalOriented(bool normalOriented);
     
     float kernelRadius() const;
     void setKernelRadius(float kernelRadius);
@@ -53,12 +50,11 @@ private:
     
     static const int s_maxKernelSize = 128;
     
-    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::ScreenSpace;
+    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::ScreenSpaceHemisphere;
     bool m_phong = false;
     
     int m_kernelSize = 32;
     int m_blurKernelSize = 7;
-    bool m_normalOriented = true;
     float m_kernelRadius = 7.0f;
     bool m_attenuation = true;
     bool m_halfResolution = true;

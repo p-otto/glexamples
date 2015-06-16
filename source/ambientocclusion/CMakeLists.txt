@@ -41,6 +41,7 @@ set(sources
     ${source_path}/AbstractAmbientOcclusionStage.cpp
     ${source_path}/AmbientOcclusionSphereStage.cpp
     ${source_path}/AmbientOcclusionHemisphereStage.cpp
+    ${source_path}/AmbientOcclusionNoneStage.cpp
     ${source_path}/BlurStage.cpp
     ${source_path}/GeometryStage.cpp
     ${source_path}/MixStage.cpp
@@ -55,6 +56,7 @@ set(api_includes
     ${include_path}/AbstractAmbientOcclusionStage.h
     ${include_path}/AmbientOcclusionSphereStage.h
     ${include_path}/AmbientOcclusionHemisphereStage.h
+    ${include_path}/AmbientOcclusionNoneStage.h
     ${include_path}/BlurStage.h
     ${include_path}/GeometryStage.h
     ${include_path}/MixStage.h

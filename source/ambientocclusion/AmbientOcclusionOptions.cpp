@@ -10,11 +10,12 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::setAmbientOcclusion);
 
     aoOption->setChoices({
-        None, ScreenSpace
+        None, ScreenSpaceSphere, ScreenSpaceHemisphere
     });
     aoOption->setStrings({
         { None, "None" },
-        { ScreenSpace, "SSAO" }
+        { ScreenSpaceSphere, "SSAO_Sphere" },
+        { ScreenSpaceHemisphere, "SSAO_Hemisphere" }
     });
 
     m_painter.addProperty<bool>("phong", this,
@@ -44,10 +45,6 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::halfResolution,
         &AmbientOcclusionOptions::setHalfResolution);
 
-    ao_group->addProperty<bool>("normal_oriented", this,
-        &AmbientOcclusionOptions::normalOriented,
-        &AmbientOcclusionOptions::setNormalOriented);
-
     ao_group->addProperty<bool>("attenuation", this,
         &AmbientOcclusionOptions::attenuation,
         &AmbientOcclusionOptions::setAttenuation);
@@ -71,6 +68,7 @@ AmbientOcclusionType AmbientOcclusionOptions::ambientOcclusion() const {
 
 void AmbientOcclusionOptions::setAmbientOcclusion(AmbientOcclusionType ambientOcclusion) {
     m_ambientOcclusion = ambientOcclusion;
+    m_painter.setAmbientOcclusion(ambientOcclusion);
 }
 
 bool AmbientOcclusionOptions::phong() const {
@@ -114,17 +112,6 @@ float AmbientOcclusionOptions::kernelRadius() const
 void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
 {
     m_kernelRadius = kernelRadius;
-}
-
-bool AmbientOcclusionOptions::normalOriented() const
-{
-    return m_normalOriented;
-}
-
-void AmbientOcclusionOptions::setNormalOriented(bool normalOriented)
-{
-    m_normalOriented = normalOriented;
-    m_painter.setupKernelAndRotationTex();
 }
 
 bool AmbientOcclusionOptions::attenuation() const

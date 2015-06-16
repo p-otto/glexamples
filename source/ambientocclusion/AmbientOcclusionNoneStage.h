@@ -4,17 +4,15 @@
 
 #include <vector>
 
-#include <globjects/base/ref_ptr.h>
-
 #include <glm/glm.hpp>
 
 class AmbientOcclusionOptions;
 
-class AmbientOcclusionHemisphereStage : public AbstractAmbientOcclusionStage
+class AmbientOcclusionNoneStage : public AbstractAmbientOcclusionStage
 {
 public:
-    AmbientOcclusionHemisphereStage(const AmbientOcclusionOptions *options);
-    virtual ~AmbientOcclusionHemisphereStage() = default;
+    AmbientOcclusionNoneStage(const AmbientOcclusionOptions *options);
+    virtual ~AmbientOcclusionNoneStage() = default;
 
 protected:
     virtual void initializeShaders() override;
