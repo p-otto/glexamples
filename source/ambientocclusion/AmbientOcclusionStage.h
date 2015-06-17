@@ -2,6 +2,10 @@
 
 #include "AmbientOcclusionOptions.h"
 
+#include "AmbientOcclusionStrategies/SSAONone.h"
+#include "AmbientOcclusionStrategies/SSAOSphere.h"
+#include "AmbientOcclusionStrategies/SSAOHemisphere.h"
+
 #include <vector>
 #include <memory>
 #include <random>
