@@ -96,11 +96,6 @@ void GeometryStage::bindAndClearFbo()
     m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 }
 
-globjects::Framebuffer * GeometryStage::getFramebuffer()
-{
-    return m_modelFbo;
-}
-
 globjects::Texture * GeometryStage::getColorTexture()
 {
     return m_colorAttachment;
@@ -109,6 +104,11 @@ globjects::Texture * GeometryStage::getColorTexture()
 globjects::Texture * GeometryStage::getNormalDepthTexture()
 {
     return m_normalDepthAttachment;
+}
+
+globjects::Texture * GeometryStage::getDepthBuffer()
+{
+    return m_depthBuffer;
 }
 
 gloperate::UniformGroup * GeometryStage::getUniformGroup()

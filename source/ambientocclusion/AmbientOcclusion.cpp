@@ -216,8 +216,7 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     m_geometryStage->bindAndClearFbo();
     drawGeometry();
 
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_ALWAYS);
+    glDisable(GL_DEPTH_TEST);
     
     // calculate ambient occlusion
     if (m_occlusionOptions->halfResolution())
@@ -255,28 +254,18 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     m_blurStage->process(occlusionTexture, normalDepthTexture);
     
     // finally, render to screen
-    auto drawBuffer = GL_COLOR_ATTACHMENT0;
     auto default_framebuffer = m_targetFramebufferCapability->framebuffer();
     if (!default_framebuffer) {
         default_framebuffer = globjects::Framebuffer::defaultFBO();
-        drawBuffer = GL_BACK_LEFT;
     }
+
+    glEnable(GL_DEPTH_TEST);
 
     default_framebuffer->bind(GL_FRAMEBUFFER);
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto blurTexture = m_blurStage->getBlurredTexture();
     auto colorTexture = m_geometryStage->getColorTexture();
-    m_mixStage->process(colorTexture, blurTexture, normalDepthTexture);
-
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-
-    const auto rect = std::array<gl::GLint, 4>{{
-        m_viewportCapability->x(),
-        m_viewportCapability->y(),
-        m_viewportCapability->width(),
-        m_viewportCapability->height()}};
-
-    m_geometryStage->getFramebuffer()->blit(GL_COLOR_ATTACHMENT0, rect, default_framebuffer, GL_BACK_LEFT, rect, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    auto depthBuffer = m_geometryStage->getDepthBuffer();
+    m_mixStage->process(colorTexture, blurTexture, normalDepthTexture, depthBuffer);
 }
