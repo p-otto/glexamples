@@ -85,12 +85,16 @@ void AmbientOcclusionStage::process(globjects::Texture *normalsDepth)
 
     m_uniformGroup->addToProgram(m_screenAlignedQuad->program());
 
-    glProgramUniform3fv(
-                        m_screenAlignedQuad->program()->id(),
-                        m_screenAlignedQuad->program()->getUniformLocation("kernel"),
-                        m_occlusionOptions->kernelSize(),
-                        glm::value_ptr((m_kernel)[0])
-                        );
+    // don't upload kernel for SSAONone
+    if (m_kernel.size() > 0)
+    {
+        glProgramUniform3fv(
+            m_screenAlignedQuad->program()->id(),
+            m_screenAlignedQuad->program()->getUniformLocation("kernel"),
+            m_occlusionOptions->kernelSize(),
+            glm::value_ptr((m_kernel)[0])
+        );
+    }
 
     m_screenAlignedQuad->draw();
 }
