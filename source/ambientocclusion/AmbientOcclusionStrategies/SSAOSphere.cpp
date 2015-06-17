@@ -1,30 +1,17 @@
-#include "AmbientOcclusionSphereStage.h"
+#include "SSAOSphere.h"
 
 #include "AmbientOcclusionOptions.h"
-#include "ScreenAlignedQuadRenderer.h"
 
 #include <glbinding/gl/enum.h>
-#include <glbinding/gl/bitfield.h>
-#include <glbinding/gl/functions.h>
 
-#include <globjects/Texture.h>
-#include <globjects/Framebuffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
-
-#include <gloperate/primitives/UniformGroup.h>
-#include <gloperate/base/make_unique.hpp>
-
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace gl;
 using namespace globjects;
 
-AmbientOcclusionSphereStage::AmbientOcclusionSphereStage(const AmbientOcclusionOptions * options)
-:   AbstractAmbientOcclusionStage(options)
-{}
-
-void AmbientOcclusionSphereStage::initializeShaders()
+SSAOSphere::SSAOSphere(const AmbientOcclusionOptions * options)
+:   AmbientOcclusionStrategy(options)
 {
     m_program = new Program{};
     m_program->attach(
@@ -33,7 +20,7 @@ void AmbientOcclusionSphereStage::initializeShaders()
     );
 }
 
-std::vector<glm::vec3> AmbientOcclusionSphereStage::getKernel(int size)
+std::vector<glm::vec3> SSAOSphere::getKernel(int size)
 {
     std::vector<glm::vec3> kernel(size);
     int count = 1;
@@ -56,7 +43,7 @@ std::vector<glm::vec3> AmbientOcclusionSphereStage::getKernel(int size)
     return kernel;
 }
 
-std::vector<glm::vec3> AmbientOcclusionSphereStage::getNoiseTexture(int size)
+std::vector<glm::vec3> SSAOSphere::getNoiseTexture(int size)
 {
     std::vector<glm::vec3> tex(size * size);
 

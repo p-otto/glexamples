@@ -1,39 +1,26 @@
-#include "AmbientOcclusionHemisphereStage.h"
+#include "SSAOHemisphere.h"
 
 #include "AmbientOcclusionOptions.h"
-#include "ScreenAlignedQuadRenderer.h"
 
 #include <glbinding/gl/enum.h>
-#include <glbinding/gl/bitfield.h>
-#include <glbinding/gl/functions.h>
 
-#include <globjects/Texture.h>
-#include <globjects/Framebuffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
-
-#include <gloperate/primitives/UniformGroup.h>
-#include <gloperate/base/make_unique.hpp>
-
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace gl;
 using namespace globjects;
 
-AmbientOcclusionHemisphereStage::AmbientOcclusionHemisphereStage(const AmbientOcclusionOptions * options)
-:   AbstractAmbientOcclusionStage(options)
-{}
-
-void AmbientOcclusionHemisphereStage::initializeShaders()
+SSAOHemisphere::SSAOHemisphere(const AmbientOcclusionOptions * options)
+:   AmbientOcclusionStrategy(options)
 {
     m_program = new Program{};
     m_program->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssao_normaloriented.frag")   
     );
 }
 
-std::vector<glm::vec3> AmbientOcclusionHemisphereStage::getKernel(int size)
+std::vector<glm::vec3> SSAOHemisphere::getKernel(int size)
 {
     std::vector<glm::vec3> kernel(size);
     int count = 1;
@@ -59,7 +46,7 @@ std::vector<glm::vec3> AmbientOcclusionHemisphereStage::getKernel(int size)
     return kernel;
 }
 
-std::vector<glm::vec3> AmbientOcclusionHemisphereStage::getNoiseTexture(int size)
+std::vector<glm::vec3> SSAOHemisphere::getNoiseTexture(int size)
 {
     std::vector<glm::vec3> tex(size * size);
 

@@ -38,10 +38,11 @@ set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/")
 set(sources
     ${source_path}/AmbientOcclusion.cpp
     ${source_path}/AmbientOcclusionOptions.cpp
-    ${source_path}/AbstractAmbientOcclusionStage.cpp
-    ${source_path}/AmbientOcclusionSphereStage.cpp
-    ${source_path}/AmbientOcclusionHemisphereStage.cpp
-    ${source_path}/AmbientOcclusionNoneStage.cpp
+    ${source_path}/AmbientOcclusionStage.cpp
+    ${source_path}/AmbientOcclusionStrategies/AmbientOcclusionStrategy.cpp
+    ${source_path}/AmbientOcclusionStrategies/SSAONone.cpp
+    ${source_path}/AmbientOcclusionStrategies/SSAOSphere.cpp
+    ${source_path}/AmbientOcclusionStrategies/SSAOHemisphere.cpp
     ${source_path}/BlurStage.cpp
     ${source_path}/GeometryStage.cpp
     ${source_path}/MixStage.cpp
@@ -53,10 +54,11 @@ set(sources
 set(api_includes
     ${include_path}/AmbientOcclusion.h
     ${include_path}/AmbientOcclusionOptions.h
-    ${include_path}/AbstractAmbientOcclusionStage.h
-    ${include_path}/AmbientOcclusionSphereStage.h
-    ${include_path}/AmbientOcclusionHemisphereStage.h
-    ${include_path}/AmbientOcclusionNoneStage.h
+    ${include_path}/AmbientOcclusionStage.h
+    ${include_path}/AmbientOcclusionStrategies/AmbientOcclusionStrategy.h
+    ${include_path}/AmbientOcclusionStrategies/SSAONone.h
+    ${include_path}/AmbientOcclusionStrategies/SSAOSphere.h
+    ${include_path}/AmbientOcclusionStrategies/SSAOHemisphere.h
     ${include_path}/BlurStage.h
     ${include_path}/GeometryStage.h
     ${include_path}/MixStage.h

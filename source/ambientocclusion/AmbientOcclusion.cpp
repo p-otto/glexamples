@@ -4,10 +4,8 @@
 #include "ScreenAlignedQuadRenderer.h"
 #include "UniformHelper.h"
 
-#include "AmbientOcclusionHemisphereStage.h"
-#include "AmbientOcclusionSphereStage.h"
-#include "AmbientOcclusionNoneStage.h"
 #include "BlurStage.h"
+#include "AmbientOcclusionStage.h"
 #include "GeometryStage.h"
 #include "MixStage.h"
 
@@ -57,11 +55,8 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
-,   m_ambientOcclusionNoneStage(gloperate::make_unique<AmbientOcclusionNoneStage>(m_occlusionOptions.get()))
-,   m_ambientOcclusionSphereStage(gloperate::make_unique<AmbientOcclusionSphereStage>(m_occlusionOptions.get()))
-,   m_ambientOcclusionHemisphereStage(gloperate::make_unique<AmbientOcclusionHemisphereStage>(m_occlusionOptions.get()))
-,   m_ambientOcclusionStage(m_ambientOcclusionHemisphereStage.get())
 ,   m_geometryStage(gloperate::make_unique<GeometryStage>(m_occlusionOptions.get()))
+,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions.get()))
 ,   m_blurStage(gloperate::make_unique<BlurStage>(m_occlusionOptions.get()))
 ,   m_mixStage(gloperate::make_unique<MixStage>(m_occlusionOptions.get()))
 {}
@@ -70,7 +65,7 @@ AmbientOcclusion::~AmbientOcclusion() = default;
 
 void AmbientOcclusion::setupProjection()
 {
-    static const auto zNear = 0.3f, zFar = 150.f, fovy = 50.f;
+    static const auto zNear = 0.3f, zFar = 500.f, fovy = 50.f;
 
     m_projectionCapability->setZNear(zNear);
     m_projectionCapability->setZFar(zFar);
@@ -86,20 +81,7 @@ void AmbientOcclusion::setupKernelAndRotationTex()
 
 void AmbientOcclusion::setAmbientOcclusion(const AmbientOcclusionType &type)
 {
-    switch (type) {
-        case ScreenSpaceSphere:
-            m_ambientOcclusionStage = m_ambientOcclusionSphereStage.get();
-            break;
-
-        case ScreenSpaceHemisphere:
-            m_ambientOcclusionStage = m_ambientOcclusionHemisphereStage.get();
-            break;
-
-        default:
-            m_ambientOcclusionStage = m_ambientOcclusionNoneStage.get();
-            break;
-    }
-
+    m_ambientOcclusionStage->setAmbientOcclusion(type);
     updateFramebuffers();
 }
 
@@ -107,11 +89,8 @@ void AmbientOcclusion::setupFramebuffers()
 {
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
 
-    m_ambientOcclusionNoneStage->updateFramebuffer(width, height);
-    m_ambientOcclusionSphereStage->updateFramebuffer(width, height);
-    m_ambientOcclusionHemisphereStage->updateFramebuffer(width, height);
-    
     m_blurStage->updateFramebuffer(width, height);
+    m_ambientOcclusionStage->updateFramebuffer(width, height);
     m_geometryStage->updateFramebuffer(width, height);
 }
 
@@ -147,11 +126,8 @@ void AmbientOcclusion::onInitialize()
 
     auto scene = m_resourceManager.load<gloperate::Scene>("data/ambientocclusion/dragon.obj");
 
-    m_ambientOcclusionNoneStage->initialize();
-    m_ambientOcclusionSphereStage->initialize();
-    m_ambientOcclusionHemisphereStage->initialize();
-
     m_blurStage->initialize();
+    m_ambientOcclusionStage->initialize();
     m_geometryStage->initialize(scene);
     m_mixStage->initialize();
     

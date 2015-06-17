@@ -13,8 +13,8 @@
 class ScreenAlignedQuadRenderer;
 class AmbientOcclusionOptions;
 
-class AbstractAmbientOcclusionStage;
 class BlurStage;
+class AmbientOcclusionStage;
 class GeometryStage;
 class MixStage;
 
@@ -67,12 +67,8 @@ protected:
     /* members */
     std::unique_ptr<AmbientOcclusionOptions> m_occlusionOptions;
 
-    std::unique_ptr<AbstractAmbientOcclusionStage> m_ambientOcclusionNoneStage;
-    std::unique_ptr<AbstractAmbientOcclusionStage> m_ambientOcclusionSphereStage;
-    std::unique_ptr<AbstractAmbientOcclusionStage> m_ambientOcclusionHemisphereStage;
-    AbstractAmbientOcclusionStage * m_ambientOcclusionStage;
-
     std::unique_ptr<GeometryStage> m_geometryStage;
+    std::unique_ptr<AmbientOcclusionStage> m_ambientOcclusionStage;
     std::unique_ptr<BlurStage> m_blurStage;
     std::unique_ptr<MixStage> m_mixStage;
 

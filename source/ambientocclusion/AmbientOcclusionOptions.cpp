@@ -37,7 +37,7 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::kernelRadius,
         &AmbientOcclusionOptions::setKernelRadius)->setOptions({
         { "minimum", 0.2f },
-        { "maximum", 8.0f },
+        { "maximum", 100.0f },
         { "step", 0.5f }
     });
     

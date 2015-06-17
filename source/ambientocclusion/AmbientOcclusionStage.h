@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AmbientOcclusionOptions.h"
+
 #include <vector>
 #include <memory>
 #include <random>
@@ -10,6 +12,11 @@
 
 class AmbientOcclusionOptions;
 class ScreenAlignedQuadRenderer;
+
+class AmbientOcclusionStrategy;
+class SSAOHemisphere;
+class SSAOSphere;
+class SSAONone;
 
 namespace globjects
 {
@@ -23,11 +30,11 @@ namespace gloperate
     class UniformGroup;
 }
 
-class AbstractAmbientOcclusionStage
+class AmbientOcclusionStage
 {
 public:
-    AbstractAmbientOcclusionStage(const AmbientOcclusionOptions *options);
-    ~AbstractAmbientOcclusionStage() = default;
+    AmbientOcclusionStage(const AmbientOcclusionOptions *options);
+    ~AmbientOcclusionStage() = default;
 
     void initialize();
     void process(globjects::Texture *normalsDepth);
@@ -35,27 +42,25 @@ public:
     globjects::Texture * getOcclusionTexture();
     gloperate::UniformGroup * getUniformGroup();
 
+    void setAmbientOcclusion(const AmbientOcclusionType &type);
     void setupKernelAndRotationTex();
     void updateFramebuffer(const int width, const int height);
 
 protected:
-    virtual void initializeShaders() = 0;
-
-    virtual std::vector<glm::vec3> getKernel(int size) = 0;
-    virtual std::vector<glm::vec3> getNoiseTexture(int size) = 0;
-
     /* members */
     const AmbientOcclusionOptions * m_occlusionOptions;
+
+    AmbientOcclusionStrategy * m_strategy;
+    std::unique_ptr<SSAONone> m_noSSAO;
+    std::unique_ptr<SSAOSphere> m_sphereSSAO;
+    std::unique_ptr<SSAOHemisphere> m_hemisphereSSAO;
 
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;
 
-    globjects::ref_ptr<globjects::Program> m_program;
-
     globjects::ref_ptr<globjects::Texture> m_rotationTex;
     std::vector<glm::vec3> m_kernel;
 
-    std::unique_ptr<std::default_random_engine> m_randEngine;
     std::unique_ptr<gloperate::UniformGroup> m_uniformGroup;
 
     std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
