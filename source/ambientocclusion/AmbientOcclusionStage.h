@@ -5,6 +5,7 @@
 #include "AmbientOcclusionStrategies/SSAONone.h"
 #include "AmbientOcclusionStrategies/SSAOSphere.h"
 #include "AmbientOcclusionStrategies/SSAOHemisphere.h"
+#include "AmbientOcclusionStrategies/HBAO.h"
 
 #include <vector>
 #include <memory>
@@ -21,6 +22,7 @@ class AmbientOcclusionStrategy;
 class SSAOHemisphere;
 class SSAOSphere;
 class SSAONone;
+class HBAO;
 
 namespace globjects
 {
@@ -58,6 +60,7 @@ protected:
     std::unique_ptr<SSAONone> m_noSSAO;
     std::unique_ptr<SSAOSphere> m_sphereSSAO;
     std::unique_ptr<SSAOHemisphere> m_hemisphereSSAO;
+    std::unique_ptr<HBAO> m_HBAO;
 
     globjects::ref_ptr<globjects::Framebuffer> m_occlusionFbo;
     globjects::ref_ptr<globjects::Texture> m_occlusionAttachment;

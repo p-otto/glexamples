@@ -10,12 +10,13 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::setAmbientOcclusion);
 
     aoOption->setChoices({
-        None, ScreenSpaceSphere, ScreenSpaceHemisphere
+        None, ScreenSpaceSphere, ScreenSpaceHemisphere, HorizonBased
     });
     aoOption->setStrings({
         { None, "None" },
         { ScreenSpaceSphere, "SSAO_Sphere" },
-        { ScreenSpaceHemisphere, "SSAO_Hemisphere" }
+        { ScreenSpaceHemisphere, "SSAO_Hemisphere" },
+        { HorizonBased, "HBAO" }
     });
 
     m_painter.addProperty<bool>("phong", this,

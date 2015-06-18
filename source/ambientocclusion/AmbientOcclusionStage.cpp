@@ -36,6 +36,7 @@ void AmbientOcclusionStage::initialize()
     m_noSSAO = gloperate::make_unique<SSAONone>(m_occlusionOptions);
     m_sphereSSAO = gloperate::make_unique<SSAOSphere>(m_occlusionOptions);
     m_hemisphereSSAO = gloperate::make_unique<SSAOHemisphere>(m_occlusionOptions);
+    m_HBAO = gloperate::make_unique<HBAO>(m_occlusionOptions);
     
     setAmbientOcclusion(m_occlusionOptions->ambientOcclusion());
 }
@@ -49,6 +50,9 @@ void AmbientOcclusionStage::setAmbientOcclusion(const AmbientOcclusionType &type
         break;
     case ScreenSpaceHemisphere:
         m_strategy = m_hemisphereSSAO.get();
+        break;
+    case HorizonBased:
+        m_strategy = m_HBAO.get();
         break;
     default:
         m_strategy = m_noSSAO.get();
