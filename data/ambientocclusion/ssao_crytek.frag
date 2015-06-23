@@ -79,6 +79,7 @@ void main()
     }
 
     occlusion /= u_kernelSize;
+    occlusion = 1.0 - occlusion;
 
     if (depth > 0.99)
     {
