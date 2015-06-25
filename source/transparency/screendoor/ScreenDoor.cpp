@@ -29,7 +29,7 @@
 #include <gloperate/primitives/PolygonalDrawable.h>
 #include <gloperate/primitives/PolygonalGeometry.h>
 
-#include <reflectionzeug/PropertyGroup.h>
+#include <reflectionzeug/property/PropertyGroup.h>
 
 #include <widgetzeug/make_unique.hpp>
 

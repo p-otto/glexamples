@@ -27,11 +27,11 @@
 #include <gloperate/primitives/AdaptiveGrid.h>
 #include <gloperate/primitives/ScreenAlignedQuad.h>
 #include <gloperate/primitives/Scene.h>
-
 #include <gloperate/primitives/PolygonalDrawable.h>
 #include <gloperate/primitives/PolygonalGeometry.h>
 
-#include <reflectionzeug/PropertyGroup.h>
+#include <reflectionzeug/property/PropertyGroup.h>
+
 #include <widgetzeug/make_unique.hpp>
 
 #include "MasksTableGenerator.h"
