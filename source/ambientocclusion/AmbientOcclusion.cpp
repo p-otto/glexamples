@@ -85,20 +85,13 @@ void AmbientOcclusion::setAmbientOcclusion(const AmbientOcclusionType &type)
     updateFramebuffers();
 }
 
-void AmbientOcclusion::setupFramebuffers()
-{
-    const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
-
-    m_blurStage->updateFramebuffer(width, height);
-    m_ambientOcclusionStage->updateFramebuffer(width, height);
-    m_geometryStage->updateFramebuffer(width, height);
-}
-
 void AmbientOcclusion::updateFramebuffers()
 {
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
 
+    m_geometryStage->updateFramebuffer(width, height);
     m_ambientOcclusionStage->updateFramebuffer(width, height);
+    m_blurStage->updateFramebuffer(width, height);
 }
 
 void AmbientOcclusion::onInitialize()
@@ -131,7 +124,7 @@ void AmbientOcclusion::onInitialize()
     m_geometryStage->initialize(scene);
     m_mixStage->initialize();
     
-    setupFramebuffers();
+    updateFramebuffers();
     setupProjection();
 }
 

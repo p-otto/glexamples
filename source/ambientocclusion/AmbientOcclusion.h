@@ -42,7 +42,6 @@ public:
     virtual ~AmbientOcclusion();
 
     void setupProjection();
-    void setupFramebuffers();
     void updateFramebuffers();
 
     // called from options
