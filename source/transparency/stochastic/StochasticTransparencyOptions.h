@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include <reflectionzeug/PropertyGroup.h>
+#include <reflectionzeug/property/PropertyGroup.h>
 
 
 class StochasticTransparency;

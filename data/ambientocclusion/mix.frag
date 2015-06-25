@@ -15,6 +15,6 @@ void main()
     vec3 color = texture(u_color, v_uv).rgb;
     float occlusion = texture(u_blur, v_uv).r;
 
-    fragColor = vec4(color - vec3(occlusion), 1.0);
     gl_FragDepth = texture(u_depth, v_uv).r;
+    fragColor = vec4(color * occlusion, 1.0);
 }
