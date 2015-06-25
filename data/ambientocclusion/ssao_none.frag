@@ -7,5 +7,5 @@ layout(location = 0) out float occlusion;
 
 void main()
 {
-    occlusion = 0.0;
+    occlusion = 1.0;
 }
