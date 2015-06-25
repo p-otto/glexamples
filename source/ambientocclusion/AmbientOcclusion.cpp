@@ -113,11 +113,10 @@ void AmbientOcclusion::onInitialize()
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 
-    // some magic numbers that give a good view on the teapot
-    m_cameraCapability->setEye(glm::vec3(0.0f, 15.7f, -15.0f));
+    m_cameraCapability->setEye(glm::vec3(0.0f, 0.0f, -120.0f));
     m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
 
-    auto scene = m_resourceManager.load<gloperate::Scene>("data/ambientocclusion/dragon.obj");
+    auto scene = m_resourceManager.load<gloperate::Scene>("data/ambientocclusion/scifiroom/Scifi.3DS");
 
     m_blurStage->initialize();
     m_ambientOcclusionStage->initialize();
@@ -168,6 +167,9 @@ void AmbientOcclusion::drawGeometry()
     glEnable(GL_CULL_FACE);
 
     glm::mat4 model{};
+    model = glm::scale(model, glm::vec3(0.1f));
+    model = glm::rotate(model, 3.14f / 2.0f, glm::vec3(1, 0, 0));
+    model = glm::translate(model, glm::vec3(-120, 0, -200));
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,
