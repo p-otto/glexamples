@@ -2,6 +2,11 @@
 
 #include "ScreenAlignedQuadRenderer.h"
 
+#include "AmbientOcclusionStrategies/SSAONone.h"
+#include "AmbientOcclusionStrategies/SSAOSphere.h"
+#include "AmbientOcclusionStrategies/SSAOHemisphere.h"
+#include "AmbientOcclusionStrategies/SSDO.h"
+
 #include <glbinding/gl/enum.h>
 #include <glbinding/gl/bitfield.h>
 #include <glbinding/gl/functions.h>
@@ -33,29 +38,11 @@ void AmbientOcclusionStage::initialize()
     m_occlusionFbo = make_ref<Framebuffer>();
     m_occlusionFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_occlusionAttachment);
 
-    m_noSSAO = gloperate::make_unique<SSAONone>(m_occlusionOptions);
-    m_sphereSSAO = gloperate::make_unique<SSAOSphere>(m_occlusionOptions);
-    m_hemisphereSSAO = gloperate::make_unique<SSAOHemisphere>(m_occlusionOptions);
-    
-    setAmbientOcclusion(m_occlusionOptions->ambientOcclusion());
+    initializeMethodSpecific();
 }
 
-void AmbientOcclusionStage::setAmbientOcclusion(const AmbientOcclusionType &type)
-{
-    switch (type)
-    {
-    case ScreenSpaceSphere:
-        m_strategy = m_sphereSSAO.get();
-        break;
-    case ScreenSpaceHemisphere:
-        m_strategy = m_hemisphereSSAO.get();
-        break;
-    default:
-        m_strategy = m_noSSAO.get();
-        break;
-    }
-    setupKernelAndRotationTex();
-}
+void AmbientOcclusionStage::initializeMethodSpecific()
+{}
 
 void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
 {
@@ -73,7 +60,7 @@ void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
 
 void AmbientOcclusionStage::process(globjects::Texture *normalsDepth)
 {
-    m_screenAlignedQuad->setProgram(m_strategy->getProgram());
+    m_screenAlignedQuad->setProgram(m_program);
 
     m_occlusionFbo->bind();
     m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.0, 0.0, 0.0, 0.0});
@@ -111,8 +98,8 @@ gloperate::UniformGroup* AmbientOcclusionStage::getUniformGroup()
 
 void AmbientOcclusionStage::setupKernelAndRotationTex()
 {
-    m_kernel = std::vector<glm::vec3>(m_strategy->getKernel(m_occlusionOptions->maxKernelSize()));
-    std::vector<glm::vec3> rotationValues = m_strategy->getNoiseTexture(m_occlusionOptions->rotationTexSize());
+    m_kernel = std::vector<glm::vec3>(getKernel(m_occlusionOptions->maxKernelSize()));
+    std::vector<glm::vec3> rotationValues = getNoiseTexture(m_occlusionOptions->rotationTexSize());
 
     if (!m_rotationTex)
     {

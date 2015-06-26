@@ -44,6 +44,7 @@ public:
     float minimalKernelAngle() const;
 
     bool hasResolutionChanged();
+    bool hasAmbientOcclusionTypeChanged();
     
 private:
     AmbientOcclusion & m_painter;
@@ -65,4 +66,5 @@ private:
     float m_minimalKernelAngle = 0.1f;
 
     bool m_resolutionChanged = false;
+    bool m_ambientOcclusionChanged = false;
 };
