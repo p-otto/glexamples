@@ -1,10 +1,8 @@
 #pragma once
 
-#include "AmbientOcclusionStrategy.h"
+#include "AmbientOcclusionStage.h"
 
-class AmbientOcclusionOptions;
-
-class HBAO : public AmbientOcclusionStrategy
+class HBAO : public AmbientOcclusionStage
 {
 public:
     HBAO(const AmbientOcclusionOptions *options);

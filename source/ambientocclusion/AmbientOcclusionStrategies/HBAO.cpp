@@ -1,17 +1,26 @@
 #include "HBAO.h"
 
-#include "AmbientOcclusionOptions.h"
+#include "ScreenAlignedQuadRenderer.h"
 
 #include <glbinding/gl/enum.h>
+#include <glbinding/gl/bitfield.h>
+#include <glbinding/gl/functions.h>
 
+#include <globjects/Texture.h>
+#include <globjects/Framebuffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
+
+#include <gloperate/primitives/UniformGroup.h>
+#include <gloperate/base/make_unique.hpp>
+
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace gl;
 using namespace globjects;
 
 HBAO::HBAO(const AmbientOcclusionOptions * options)
-:   AmbientOcclusionStrategy(options)
+:   AmbientOcclusionStage(options)
 {
     m_program = new Program{};
     m_program->attach(

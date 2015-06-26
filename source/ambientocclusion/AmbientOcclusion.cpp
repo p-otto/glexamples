@@ -9,6 +9,11 @@
 #include "GeometryStage.h"
 #include "MixStage.h"
 
+#include "AmbientOcclusionStrategies/SSAONone.h"
+#include "AmbientOcclusionStrategies/SSAOHemisphere.h"
+#include "AmbientOcclusionStrategies/SSAOSphere.h"
+#include "AmbientOcclusionStrategies/HBAO.h"
+
 #include <chrono>
 
 #include <glm/gtc/constants.hpp>
@@ -56,7 +61,6 @@ AmbientOcclusion::AmbientOcclusion(gloperate::ResourceManager & resourceManager)
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,   m_occlusionOptions(new AmbientOcclusionOptions(*this))
 ,   m_geometryStage(gloperate::make_unique<GeometryStage>(m_occlusionOptions.get()))
-,   m_ambientOcclusionStage(gloperate::make_unique<AmbientOcclusionStage>(m_occlusionOptions.get()))
 ,   m_blurStage(gloperate::make_unique<BlurStage>(m_occlusionOptions.get()))
 ,   m_mixStage(gloperate::make_unique<MixStage>(m_occlusionOptions.get()))
 {}
@@ -79,10 +83,27 @@ void AmbientOcclusion::setupKernelAndRotationTex()
     m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
-void AmbientOcclusion::setAmbientOcclusion(const AmbientOcclusionType &type)
+void AmbientOcclusion::updateAmbientOcclusion()
 {
-    m_ambientOcclusionStage->setAmbientOcclusion(type);
-    updateFramebuffers();
+    switch (m_occlusionOptions->ambientOcclusion())
+    {
+    case ScreenSpaceSphere:
+        m_ambientOcclusionStage = gloperate::make_unique<SSAOSphere>(m_occlusionOptions.get());
+        break;
+    case ScreenSpaceHemisphere:
+        m_ambientOcclusionStage = gloperate::make_unique<SSAOHemisphere>(m_occlusionOptions.get());
+        break;
+    default:
+        m_ambientOcclusionStage = gloperate::make_unique<SSAONone>(m_occlusionOptions.get());
+        break;
+    }
+
+    m_ambientOcclusionStage->initialize();
+
+    const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
+    m_ambientOcclusionStage->updateFramebuffer(width, height);
+
+    m_ambientOcclusionStage->setupKernelAndRotationTex();
 }
 
 void AmbientOcclusion::updateFramebuffers()
@@ -118,8 +139,9 @@ void AmbientOcclusion::onInitialize()
 
     auto scene = m_resourceManager.load<gloperate::Scene>("data/ambientocclusion/scifiroom/Scifi.3DS");
 
+    updateAmbientOcclusion();
+
     m_blurStage->initialize();
-    m_ambientOcclusionStage->initialize();
     m_geometryStage->initialize(scene);
     m_mixStage->initialize();
     
@@ -140,8 +162,11 @@ void AmbientOcclusion::onPaint()
         updateFramebuffers();
     }
     
-    drawScreenSpaceAmbientOcclusion();
+    if (m_occlusionOptions->hasAmbientOcclusionTypeChanged()) {
+        updateAmbientOcclusion();
+    }
 
+    drawScreenSpaceAmbientOcclusion();
     drawGrid();
 }
 
