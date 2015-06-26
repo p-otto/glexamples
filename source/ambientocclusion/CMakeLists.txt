@@ -49,6 +49,7 @@ set(sources
     ${source_path}/MixStage.cpp
     ${source_path}/ScreenAlignedQuadRenderer.cpp
     ${source_path}/Plane.cpp
+    ${source_path}/Kernel.cpp
     ${source_path}/plugin.cpp
 )
 
@@ -67,6 +68,7 @@ set(api_includes
     ${include_path}/ScreenAlignedQuadRenderer.h
     ${include_path}/UniformHelper.h
     ${include_path}/Plane.h
+    ${include_path}/Kernel.h
 )
 
 # Group source files
