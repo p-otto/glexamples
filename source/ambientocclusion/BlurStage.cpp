@@ -48,8 +48,8 @@ void BlurStage::initialize()
 
 void BlurStage::updateFramebuffer(const int width, const int height)
 {
-    m_blurAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    m_blurTmpAttachment->image2D(0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_blurAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    m_blurTmpAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 }
 
 void BlurStage::process(globjects::Texture *input, globjects::Texture *normals)

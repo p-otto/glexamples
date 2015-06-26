@@ -8,7 +8,7 @@ uniform sampler2D u_occlusion;
 uniform bool u_biliteral;
 uniform int u_kernelSize;
 
-layout(location = 0) out float occlusion;
+layout(location = 0) out vec3 occlusion;
 
 #define EPSILON 0.001
 #define COMP_DEPTH 0.01
@@ -18,7 +18,7 @@ void main()
 {
     vec4 normal_depth = texture(u_normal_depth, v_uv);
     
-    occlusion = 0.0;
+    occlusion = vec3(0.0);
     float count = 0.0;
     for (int y = -u_kernelSize; y <= u_kernelSize; ++y)
     {
@@ -30,11 +30,11 @@ void main()
             
             float depth_test = abs(normal_depth.a - cur_normal_depth.a) < COMP_DEPTH ? 1.0 : 0.0;
             float normal_test = dot(normal_depth.xyz * 2.0 - vec3(1.0), cur_normal_depth.xyz * 2.0 - vec3(1.0)) > COMP_NORMAL ? 1.0 : 0.0;
-            occlusion += texture(u_occlusion, cur_uv).r * depth_test * normal_test;
+            occlusion += texture(u_occlusion, cur_uv).rgb * depth_test * normal_test;
             count += depth_test * normal_test;
         }
         else {
-            occlusion += texture(u_occlusion, cur_uv).r;
+            occlusion += texture(u_occlusion, cur_uv).rgb;
             count += 1.0;
         }
     }

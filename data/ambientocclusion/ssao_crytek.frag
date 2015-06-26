@@ -19,7 +19,7 @@ uniform bool u_attenuation;
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
-layout(location = 0) out float occlusion;
+layout(location = 0) out vec3 occlusion;
 
 vec3 calcReflection()
 {
@@ -41,7 +41,7 @@ void main()
     vec3 position = calcPosition(depth);
     vec3 reflection_normal = calcReflection();
 
-    occlusion = 0.0;
+    float occlusion_factor = 0.0;
     for (int i = 0; i < u_kernelSize; ++i)
     {
         vec3 reflected_kernel = reflect(kernel[i], reflection_normal);
@@ -70,19 +70,21 @@ void main()
         {
             float diff = 25 * (linear_comp_depth - linear_sample_depth) / (u_kernelRadius * u_kernelRadius);
             
-            // ensure occlusion is at least 0.5, so thta image doesn't get brightened
-            occlusion += max((1.0 / (1.0 + diff * diff)), 0.5) * occluded * range_check;
+            // ensure occlusion is at least 0.5, so that image doesn't get brightened
+            occlusion_factor += max((1.0 / (1.0 + diff * diff)), 0.5) * occluded * range_check;
         }
         else {
-            occlusion += 1.0 * occluded * range_check;
+            occlusion_factor += 1.0 * occluded * range_check;
         }
     }
 
-    occlusion /= u_kernelSize;
-    occlusion = 1.0 - occlusion;
+    occlusion_factor /= u_kernelSize;
+    occlusion_factor = 1.0 - occlusion_factor;
 
     if (depth > 0.99)
     {
-        occlusion = 0.0;
+        occlusion_factor = 0.0;
     }
+    
+    occlusion = vec3(occlusion_factor);
 }

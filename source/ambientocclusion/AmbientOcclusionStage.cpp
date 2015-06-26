@@ -67,8 +67,8 @@ void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
         occlusionWidth /= 2;
     }
 
-    m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    m_occlusionAttachment->image2D(0, GL_R8, occlusionWidth, occlusionHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    m_occlusionAttachment->image2D(0, GL_RGB8, occlusionWidth, occlusionHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    m_occlusionAttachment->image2D(0, GL_RGB8, occlusionWidth, occlusionHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 }
 
 void AmbientOcclusionStage::process(globjects::Texture *normalsDepth)

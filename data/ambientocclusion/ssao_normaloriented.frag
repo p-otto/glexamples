@@ -19,7 +19,7 @@ uniform bool u_attenuation;
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
-layout(location = 0) out float occlusion;
+layout(location = 0) out vec3 occlusion;
 
 mat3 calcRotatedTbn(vec3 normal) 
 {
@@ -52,7 +52,7 @@ void main()
     vec3 position = calcPosition(depth);
     mat3 tbn = calcRotatedTbn(normal);
 
-    occlusion = 0.0;
+    float occlusion_factor = 0.0;
     for (int i = 0; i < u_kernelSize; ++i)
     {
         vec3 rotated_kernel = tbn * kernel[i];
@@ -80,19 +80,21 @@ void main()
         {
             // dividing by u_kernelRadius squared, because a bigger radius means that depths difference will be bigger
             float diff = 25 * (linear_comp_depth - linear_sample_depth) / (u_kernelRadius * u_kernelRadius);
-            occlusion += (1.0 / (1.0 + diff * diff)) * occluded * range_check;
+            occlusion_factor += (1.0 / (1.0 + diff * diff)) * occluded * range_check;
         }
         else
         {
-            occlusion += 1.0 * occluded * range_check;
+            occlusion_factor += 1.0 * occluded * range_check;
         }
     }
 
-    occlusion /= u_kernelSize;
-    occlusion = 1.0 - occlusion;
+    occlusion_factor /= u_kernelSize;
+    occlusion_factor = 1.0 - occlusion_factor;
 
     if (depth > 0.99)
     {
-        occlusion = 0.0;
+        occlusion_factor = 0.0;
     }
+    
+    occlusion = vec3(occlusion_factor);
 }
