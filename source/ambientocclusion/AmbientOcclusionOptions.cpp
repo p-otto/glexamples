@@ -68,7 +68,7 @@ AmbientOcclusionType AmbientOcclusionOptions::ambientOcclusion() const {
 
 void AmbientOcclusionOptions::setAmbientOcclusion(AmbientOcclusionType ambientOcclusion) {
     m_ambientOcclusion = ambientOcclusion;
-    m_painter.setAmbientOcclusion(ambientOcclusion);
+    m_ambientOcclusionChanged = true;
 }
 
 bool AmbientOcclusionOptions::phong() const {
@@ -153,13 +153,25 @@ float AmbientOcclusionOptions::minimalKernelLength() const
     return m_minimalKernelLength;
 }
 
-float AmbientOcclusionOptions::minimalKernelAngle() const{
+float AmbientOcclusionOptions::minimalKernelAngle() const
+{
     return m_minimalKernelAngle;
 }
 
-bool AmbientOcclusionOptions::hasResolutionChanged() {
+bool AmbientOcclusionOptions::hasResolutionChanged()
+{
     if (m_resolutionChanged) {
         m_resolutionChanged = false;
+        return true;
+    }
+    return false;
+}
+
+bool AmbientOcclusionOptions::hasAmbientOcclusionTypeChanged()
+{
+    if (m_ambientOcclusionChanged)
+    {
+        m_ambientOcclusionChanged = false;
         return true;
     }
     return false;

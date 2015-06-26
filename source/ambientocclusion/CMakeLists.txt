@@ -39,7 +39,6 @@ set(sources
     ${source_path}/AmbientOcclusion.cpp
     ${source_path}/AmbientOcclusionOptions.cpp
     ${source_path}/AmbientOcclusionStage.cpp
-    ${source_path}/AmbientOcclusionStrategies/AmbientOcclusionStrategy.cpp
     ${source_path}/AmbientOcclusionStrategies/SSAONone.cpp
     ${source_path}/AmbientOcclusionStrategies/SSAOSphere.cpp
     ${source_path}/AmbientOcclusionStrategies/SSAOHemisphere.cpp
@@ -56,7 +55,6 @@ set(api_includes
     ${include_path}/AmbientOcclusion.h
     ${include_path}/AmbientOcclusionOptions.h
     ${include_path}/AmbientOcclusionStage.h
-    ${include_path}/AmbientOcclusionStrategies/AmbientOcclusionStrategy.h
     ${include_path}/AmbientOcclusionStrategies/SSAONone.h
     ${include_path}/AmbientOcclusionStrategies/SSAOSphere.h
     ${include_path}/AmbientOcclusionStrategies/SSAOHemisphere.h
