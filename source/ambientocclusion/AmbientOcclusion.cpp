@@ -12,6 +12,7 @@
 #include "AmbientOcclusionStrategies/SSAONone.h"
 #include "AmbientOcclusionStrategies/SSAOHemisphere.h"
 #include "AmbientOcclusionStrategies/SSAOSphere.h"
+#include "AmbientOcclusionStrategies/SSDO.h"
 
 #include <chrono>
 
@@ -91,6 +92,9 @@ void AmbientOcclusion::updateAmbientOcclusion()
         break;
     case ScreenSpaceHemisphere:
         m_ambientOcclusionStage = gloperate::make_unique<SSAOHemisphere>(m_occlusionOptions.get());
+        break;
+    case ScreenSpaceDirectional:
+        m_ambientOcclusionStage = gloperate::make_unique<SSDO>(m_occlusionOptions.get());
         break;
     default:
         m_ambientOcclusionStage = gloperate::make_unique<SSAONone>(m_occlusionOptions.get());

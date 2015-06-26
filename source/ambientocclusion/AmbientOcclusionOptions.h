@@ -2,7 +2,7 @@
 
 class AmbientOcclusion;
 
-enum AmbientOcclusionType { None, ScreenSpaceSphere, ScreenSpaceHemisphere };
+enum AmbientOcclusionType { None, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional };
 
 class AmbientOcclusionOptions
 {
