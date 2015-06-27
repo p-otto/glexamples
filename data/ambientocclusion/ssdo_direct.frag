@@ -1,5 +1,6 @@
 #version 150 core
 #extension GL_ARB_explicit_attrib_location : require
+#extension GL_ARB_shading_language_include : require
 
 in vec2 v_uv;
 in vec3 v_viewRay;
@@ -23,7 +24,7 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
-#include "lights"
+#include "/lights"
 
 mat3 calcRotatedTbn(vec3 normal)
 {

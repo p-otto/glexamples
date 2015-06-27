@@ -41,7 +41,7 @@ void GeometryStage::initialize(const gloperate::Scene * scene)
     m_phongProgram = new Program{};
     m_phongProgram->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag")
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag", { "/lights" })
     );
 
     // Model

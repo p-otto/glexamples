@@ -2,8 +2,6 @@
 
 #include "ScreenAlignedQuadRenderer.h"
 
-#include <fstream>
-
 #include <glbinding/gl/enum.h>
 #include <glbinding/gl/bitfield.h>
 #include <glbinding/gl/functions.h>
@@ -12,7 +10,6 @@
 #include <globjects/Framebuffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
-#include <globjects/NamedString.h>
 
 #include <gloperate/primitives/UniformGroup.h>
 #include <gloperate/base/make_unique.hpp>
@@ -34,15 +31,10 @@ void SSDO::initializeMethodSpecific()
         Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_bounce.frag")
     );
 
-    std::ifstream t("data/ambientocclusion/lights.glsl");
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    NamedString::create("/lights", buffer.str());
-
     m_directLightingShader = new Program{};
     m_directLightingShader->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_direct.frag", { "/" })
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_direct.frag", { "/lights" })
     );
 
     m_firstPassAttachment = Texture::createDefault(GL_TEXTURE_2D);

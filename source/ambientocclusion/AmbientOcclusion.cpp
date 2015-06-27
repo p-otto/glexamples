@@ -15,6 +15,7 @@
 #include "AmbientOcclusionStrategies/SSDO.h"
 
 #include <chrono>
+#include <fstream>
 
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,6 +31,7 @@
 #include <globjects/Program.h>
 #include <globjects/Texture.h>
 #include <globjects/Framebuffer.h>
+#include <globjects/NamedString.h>
 
 #include <gloperate/base/RenderTargetType.h>
 
@@ -146,6 +148,11 @@ void AmbientOcclusion::onInitialize()
     
     updateFramebuffers();
     setupProjection();
+
+    std::ifstream t("data/ambientocclusion/lights.glsl");
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    NamedString::create("/lights", buffer.str());
 }
 
 void AmbientOcclusion::onPaint()
