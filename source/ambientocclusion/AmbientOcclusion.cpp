@@ -132,6 +132,11 @@ void AmbientOcclusion::onInitialize()
 
     m_screenAlignedQuad = gloperate::make_unique<ScreenAlignedQuadRenderer>();
 
+    std::ifstream t("data/ambientocclusion/lights.glsl");
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    NamedString::create("/lights", buffer.str());
+
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 
@@ -148,11 +153,6 @@ void AmbientOcclusion::onInitialize()
     
     updateFramebuffers();
     setupProjection();
-
-    std::ifstream t("data/ambientocclusion/lights.glsl");
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    NamedString::create("/lights", buffer.str());
 }
 
 void AmbientOcclusion::onPaint()
