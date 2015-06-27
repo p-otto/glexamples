@@ -2,18 +2,12 @@
 
 #include "ScreenAlignedQuadRenderer.h"
 
-#include "AmbientOcclusionStrategies/SSAONone.h"
-#include "AmbientOcclusionStrategies/SSAOSphere.h"
-#include "AmbientOcclusionStrategies/SSAOHemisphere.h"
-#include "AmbientOcclusionStrategies/HBAO.h"
-
 #include <glbinding/gl/enum.h>
 #include <glbinding/gl/bitfield.h>
 #include <glbinding/gl/functions.h>
 
 #include <globjects/Texture.h>
 #include <globjects/Framebuffer.h>
-#include <globjects/Program.h>
 #include <globjects/Shader.h>
 
 #include <gloperate/primitives/UniformGroup.h>
