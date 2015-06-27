@@ -3,6 +3,9 @@
 
 in vec2 v_uv;
 
+#define MAX_KERNEL_SIZE 128
+uniform float kernel[MAX_KERNEL_SIZE];
+
 layout(location = 0) out float occlusion;
 
 void main()

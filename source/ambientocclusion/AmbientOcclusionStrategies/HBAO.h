@@ -9,5 +9,12 @@ public:
     virtual ~HBAO() = default;
 
     virtual std::vector<glm::vec3> getKernel(int size) override;
+    virtual std::vector<float> getSamplingDirections(int size);
     virtual std::vector<glm::vec3> getNoiseTexture(int size) override;
+
+    virtual void process(globjects::Texture *normalsDepth, globjects::Texture * color) override;
+    virtual void setupKernel();
+
+protected:
+    std::vector<float> m_samplingDirections;
 };
