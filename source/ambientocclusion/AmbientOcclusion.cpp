@@ -92,6 +92,9 @@ void AmbientOcclusion::updateAmbientOcclusion()
     case ScreenSpaceDirectional:
         m_ambientOcclusionStage = gloperate::make_unique<SSDO>(m_occlusionOptions.get());
         break;
+    case HorizonBased:
+        m_ambientOcclusionStage = gloperate::make_unique<HBAO>(m_occlusionOptions.get());
+        break;
     default:
         m_ambientOcclusionStage = gloperate::make_unique<SSAONone>(m_occlusionOptions.get());
         break;
