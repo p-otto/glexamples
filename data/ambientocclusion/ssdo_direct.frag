@@ -24,8 +24,9 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 layout(location = 0) out vec3 color;
 
 #define LIGHT_COUNT 2
-const vec3 light_positions[LIGHT_COUNT] = {vec3(-15.0, 5.0, -25.0), vec3(15.0, 5.0, -25.0)};
-const vec3 light_colors[LIGHT_COUNT] = {vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0)};
+const vec3 light_positions[LIGHT_COUNT] = {vec3(-15.0, 30.0, -25.0), vec3(15.0, 30.0, -25.0)};
+const vec3 light_colors[LIGHT_COUNT] = {vec3(1.0, 0.97, 0.4), vec3(0.0, 0.0, 1.0)};
+const float attenuation_factor = 0.0005;
 
 mat3 calcRotatedTbn(vec3 normal)
 {
@@ -91,7 +92,7 @@ void main()
 
             float sample_light_cos = max(0.0, dot(light_to_position, sample_to_position));
             float dist = length(light_pos - position);
-            float attenuation = min(1.0, 1.0 / (dist * dist * 0.0005));
+            float attenuation = min(1.0, 1.0 / (dist * dist * attenuation_factor));
             incoming_radiance += light_colors[j] * sample_light_cos * attenuation;
         }
         float angle_cos = max(0, dot(normalize(view_sample_point - position), normal));
