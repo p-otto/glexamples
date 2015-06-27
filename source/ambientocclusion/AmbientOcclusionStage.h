@@ -37,7 +37,8 @@ public:
     globjects::Texture * getOcclusionTexture();
     gloperate::UniformGroup * getUniformGroup();
 
-    void setupKernelAndRotationTex();
+    void setupKernel();
+    void setupRotationTex();
     void updateFramebuffer(const int width, const int height);
 
 protected:
