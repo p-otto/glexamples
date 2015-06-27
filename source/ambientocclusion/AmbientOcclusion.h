@@ -43,8 +43,6 @@ public:
 
     void setupProjection();
     void updateFramebuffers();
-    
-    void setupKernelAndRotationTex();
 
     void drawGrid();
     void drawGeometry();

@@ -3,9 +3,9 @@
 
 in vec2 v_uv;
 
-layout(location = 0) out float occlusion;
+layout(location = 0) out vec3 occlusion;
 
 void main()
 {
-    occlusion = 1.0;
+    occlusion = vec3(1.0);
 }

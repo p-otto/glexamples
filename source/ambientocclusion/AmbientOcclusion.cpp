@@ -13,6 +13,7 @@
 #include "AmbientOcclusionStrategies/SSAOHemisphere.h"
 #include "AmbientOcclusionStrategies/SSAOSphere.h"
 #include "AmbientOcclusionStrategies/HBAO.h"
+#include "AmbientOcclusionStrategies/SSDO.h"
 
 #include <chrono>
 
@@ -78,11 +79,6 @@ void AmbientOcclusion::setupProjection()
     m_grid->setNearFar(zNear, zFar);
 }
 
-void AmbientOcclusion::setupKernelAndRotationTex()
-{
-    m_ambientOcclusionStage->setupKernelAndRotationTex();
-}
-
 void AmbientOcclusion::updateAmbientOcclusion()
 {
     switch (m_occlusionOptions->ambientOcclusion())
@@ -92,6 +88,9 @@ void AmbientOcclusion::updateAmbientOcclusion()
         break;
     case ScreenSpaceHemisphere:
         m_ambientOcclusionStage = gloperate::make_unique<SSAOHemisphere>(m_occlusionOptions.get());
+        break;
+    case ScreenSpaceDirectional:
+        m_ambientOcclusionStage = gloperate::make_unique<SSDO>(m_occlusionOptions.get());
         break;
     default:
         m_ambientOcclusionStage = gloperate::make_unique<SSAONone>(m_occlusionOptions.get());
@@ -103,7 +102,8 @@ void AmbientOcclusion::updateAmbientOcclusion()
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
     m_ambientOcclusionStage->updateFramebuffer(width, height);
 
-    m_ambientOcclusionStage->setupKernelAndRotationTex();
+    m_ambientOcclusionStage->setupKernel();
+    m_ambientOcclusionStage->setupRotationTex();
 }
 
 void AmbientOcclusion::updateFramebuffers()
@@ -134,8 +134,8 @@ void AmbientOcclusion::onInitialize()
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 
-    m_cameraCapability->setEye(glm::vec3(0.0f, 0.0f, -120.0f));
-    m_cameraCapability->setCenter(glm::vec3(0.2f, 0.3f, 0.0f));
+    m_cameraCapability->setEye(glm::vec3(0.0f, 30.0f, -120.0f));
+    m_cameraCapability->setCenter(glm::vec3(0.2f, 30.3f, 0.0f));
 
     auto scene = m_resourceManager.load<gloperate::Scene>("data/ambientocclusion/scifiroom/Scifi.3DS");
 
@@ -192,9 +192,10 @@ void AmbientOcclusion::drawGeometry()
     glEnable(GL_CULL_FACE);
 
     glm::mat4 model{};
+    model = glm::translate(model, glm::vec3(-20, 60, 20));
     model = glm::scale(model, glm::vec3(0.1f));
     model = glm::rotate(model, 3.14f / 2.0f, glm::vec3(1, 0, 0));
-    model = glm::translate(model, glm::vec3(-120, 0, -200));
+    //model = glm::translate(model, glm::vec3(-120, 0, -500));
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,
@@ -227,16 +228,17 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     setUniforms(*m_ambientOcclusionStage->getUniformGroup(),
         "u_invProj", glm::inverse(m_projectionCapability->projection()),
         "u_proj", m_projectionCapability->projection(),
+        "u_view", m_cameraCapability->view(),
         "u_farPlane", m_projectionCapability->zFar(),
         "u_resolutionX", m_viewportCapability->width(),
         "u_resolutionY", m_viewportCapability->height(),
         "u_kernelSize", m_occlusionOptions->kernelSize(),
-        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
-        "u_attenuation", m_occlusionOptions->attenuation()
+        "u_kernelRadius", m_occlusionOptions->kernelRadius()
     );
+    auto colorTexture = m_geometryStage->getColorTexture();
     auto normalDepthTexture = m_geometryStage->getNormalDepthTexture();
 
-    m_ambientOcclusionStage->process(normalDepthTexture);
+    m_ambientOcclusionStage->process(normalDepthTexture, colorTexture);
 
     // blur ambient occlusion texture
     glViewport(
@@ -261,7 +263,6 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto blurTexture = m_blurStage->getBlurredTexture();
-    auto colorTexture = m_geometryStage->getColorTexture();
     auto depthBuffer = m_geometryStage->getDepthBuffer();
     m_mixStage->process(colorTexture, blurTexture, normalDepthTexture, depthBuffer);
 }

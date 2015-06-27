@@ -10,12 +10,13 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::setAmbientOcclusion);
 
     aoOption->setChoices({
-        None, ScreenSpaceSphere, ScreenSpaceHemisphere, HorizonBased
+        None, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased
     });
     aoOption->setStrings({
         { None, "None" },
         { ScreenSpaceSphere, "SSAO_Sphere" },
         { ScreenSpaceHemisphere, "SSAO_Hemisphere" },
+        { ScreenSpaceDirectional, "SSDO" },
         { HorizonBased, "HBAO" }
     });
 
@@ -45,10 +46,6 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     ao_group->addProperty<bool>("half_resolution", this,
         &AmbientOcclusionOptions::halfResolution,
         &AmbientOcclusionOptions::setHalfResolution);
-
-    ao_group->addProperty<bool>("attenuation", this,
-        &AmbientOcclusionOptions::attenuation,
-        &AmbientOcclusionOptions::setAttenuation);
 
     blur_group->addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
@@ -113,16 +110,6 @@ float AmbientOcclusionOptions::kernelRadius() const
 void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
 {
     m_kernelRadius = kernelRadius;
-}
-
-bool AmbientOcclusionOptions::attenuation() const
-{
-    return m_attenuation;
-}
-
-void AmbientOcclusionOptions::setAttenuation(bool attenuation)
-{
-    m_attenuation = attenuation;
 }
 
 bool AmbientOcclusionOptions::halfResolution() const {

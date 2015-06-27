@@ -5,6 +5,7 @@ in vec2 v_uv;
 in vec3 v_viewRay;
 
 uniform sampler2D u_normal_depth;
+uniform sampler2D u_direct_light;
 #define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
@@ -19,7 +20,7 @@ uniform bool u_attenuation;
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
-layout(location = 0) out vec3 occlusion;
+layout(location = 0) out vec3 color;
 
 mat3 calcRotatedTbn(vec3 normal)
 {
@@ -46,13 +47,13 @@ vec3 calcPosition(float depth)
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a;
-    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
+    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - 1.0;
     normal = normalize(normal);
 
     vec3 position = calcPosition(depth);
     mat3 tbn = calcRotatedTbn(normal);
 
-    float occlusion_factor = 0.0;
+    vec3 color_bleeding = vec3(0.0);
     for (int i = 0; i < u_kernelSize; ++i)
     {
         vec3 rotated_kernel = tbn * kernel[i];
@@ -73,21 +74,26 @@ void main()
         float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
         float linear_comp_depth = -view_sample_point.z;
 
-        float range_check = abs(linear_comp_depth - linear_sample_depth) < u_kernelRadius ? 1.0 : 0.0;
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
 
-        // dividing by u_kernelRadius squared, because a bigger radius means that depths difference will be bigger
-        float diff = 25 * (linear_comp_depth - linear_sample_depth) / (u_kernelRadius * u_kernelRadius);
-        occlusion_factor += (1.0 / (1.0 + diff * diff)) * occluded * range_check;
+        // calculate possible color bleeding
+        vec3 sender_normal = texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0;
+        float sender_receiver_cos = 1.0 - max(0.0, dot(sender_normal, normal));
+
+        // TODO: factor in attenuation and direction of transmittance
+        //float transmittance_direction_cos = max(0.0, dot(normalize(view_sample_point), sender_normal));
+        //float dist = abs(linear_comp_depth - linear_sample_depth);
+
+        color_bleeding += texture(u_direct_light, ndc_sample_point.xy).rgb * occluded * sender_receiver_cos;
     }
 
-    occlusion_factor /= u_kernelSize;
-    occlusion_factor = 1.0 - occlusion_factor;
+    color_bleeding /= u_kernelSize;
 
     if (depth > 0.99)
     {
-        occlusion_factor = 0.0;
+        color_bleeding = vec3(0.0);
     }
 
-    occlusion = vec3(occlusion_factor);
+    // add original color and accumulated color bleeding
+    color = texture(u_direct_light, v_uv).rgb + color_bleeding;
 }

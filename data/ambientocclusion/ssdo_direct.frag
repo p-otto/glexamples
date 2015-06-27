@@ -5,10 +5,12 @@ in vec2 v_uv;
 in vec3 v_viewRay;
 
 uniform sampler2D u_normal_depth;
+uniform sampler2D u_color;
 #define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
+uniform mat4 u_view;
 uniform float u_farPlane;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
@@ -19,7 +21,12 @@ uniform bool u_attenuation;
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
-layout(location = 0) out vec3 occlusion;
+layout(location = 0) out vec3 color;
+
+#define LIGHT_COUNT 2
+const vec3 light_positions[LIGHT_COUNT] = {vec3(-15.0, 30.0, -25.0), vec3(15.0, 30.0, -25.0)};
+const vec3 light_colors[LIGHT_COUNT] = {vec3(1.0, 0.97, 0.4), vec3(0.0, 0.0, 1.0)};
+const float attenuation_factor = 0.0005;
 
 mat3 calcRotatedTbn(vec3 normal)
 {
@@ -52,7 +59,7 @@ void main()
     vec3 position = calcPosition(depth);
     mat3 tbn = calcRotatedTbn(normal);
 
-    float occlusion_factor = 0.0;
+    vec3 occlusion = vec3(0.0);
     for (int i = 0; i < u_kernelSize; ++i)
     {
         vec3 rotated_kernel = tbn * kernel[i];
@@ -73,21 +80,31 @@ void main()
         float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
         float linear_comp_depth = -view_sample_point.z;
 
-        float range_check = abs(linear_comp_depth - linear_sample_depth) < u_kernelRadius ? 1.0 : 0.0;
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
 
-        // dividing by u_kernelRadius squared, because a bigger radius means that depths difference will be bigger
-        float diff = 25 * (linear_comp_depth - linear_sample_depth) / (u_kernelRadius * u_kernelRadius);
-        occlusion_factor += (1.0 / (1.0 + diff * diff)) * occluded * range_check;
+        // calculate direct light from point lights
+        vec3 sample_to_position = normalize(position - view_sample_point);
+        vec3 incoming_radiance = vec3(0.0);
+        for (int j = 0; j < LIGHT_COUNT; ++j)
+        {
+            vec3 light_pos = (u_view * vec4(light_positions[j], 1.0)).xyz;
+            vec3 light_to_position = normalize(position - light_pos);
+
+            float sample_light_cos = max(0.0, dot(light_to_position, sample_to_position));
+            float dist = length(light_pos - position);
+            float attenuation = min(1.0, 1.0 / (dist * dist * attenuation_factor));
+            incoming_radiance += light_colors[j] * sample_light_cos * attenuation;
+        }
+        float angle_cos = max(0, dot(normalize(view_sample_point - position), normal));
+        occlusion += angle_cos * incoming_radiance * (1.0 - occluded);
     }
 
-    occlusion_factor /= u_kernelSize;
-    occlusion_factor = 1.0 - occlusion_factor;
+    occlusion /= u_kernelSize;
 
     if (depth > 0.99)
     {
-        occlusion_factor = 0.0;
+        occlusion = vec3(0.0);
     }
 
-    occlusion = vec3(occlusion_factor);
+    color = occlusion;
 }

@@ -14,12 +14,11 @@ uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform float u_kernelRadius;
 uniform int u_kernelSize;
-uniform bool u_attenuation;
 
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
-layout(location = 0) out float occlusion;
+layout(location = 0) out vec3 occlusion;
 
 vec3 calcReflection()
 {
@@ -41,7 +40,7 @@ void main()
     vec3 position = calcPosition(depth);
     vec3 reflection_normal = calcReflection();
 
-    occlusion = 0.0;
+    float occlusion_factor = 0.0;
     for (int i = 0; i < u_kernelSize; ++i)
     {
         vec3 reflected_kernel = reflect(kernel[i], reflection_normal);
@@ -57,7 +56,7 @@ void main()
         {
             continue;
         }
-        
+
         // transform both depths to [0, u_farPlane]
         float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
         float linear_comp_depth = -view_sample_point.z;
@@ -65,24 +64,17 @@ void main()
         // use 0.5 if check fails, because crytek ssao is gray on average due to sphere sampling
         float range_check = abs(linear_comp_depth - linear_sample_depth) < u_kernelRadius ? 1.0 : 0.5;
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
-        
-        if (u_attenuation)
-        {
-            float diff = 25 * (linear_comp_depth - linear_sample_depth) / (u_kernelRadius * u_kernelRadius);
-            
-            // ensure occlusion is at least 0.5, so thta image doesn't get brightened
-            occlusion += max((1.0 / (1.0 + diff * diff)), 0.5) * occluded * range_check;
-        }
-        else {
-            occlusion += 1.0 * occluded * range_check;
-        }
+
+        occlusion_factor += 1.0 * occluded * range_check;
     }
 
-    occlusion /= u_kernelSize;
-    occlusion = 1.0 - occlusion;
+    occlusion_factor /= u_kernelSize;
+    occlusion_factor = 1.0 - occlusion_factor;
 
     if (depth > 0.99)
     {
-        occlusion = 0.0;
+        occlusion_factor = 0.0;
     }
+
+    occlusion = vec3(occlusion_factor);
 }

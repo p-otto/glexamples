@@ -2,7 +2,7 @@
 
 class AmbientOcclusion;
 
-enum AmbientOcclusionType { None, ScreenSpaceSphere, ScreenSpaceHemisphere, HorizonBased };
+enum AmbientOcclusionType { None, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased };
 
 class AmbientOcclusionOptions
 {
@@ -31,9 +31,6 @@ public:
 
     bool halfResolution() const;
     void setHalfResolution(bool halfResolution);
-    
-    bool attenuation() const;
-    void setAttenuation(bool attenuation);
 
     bool biliteralBlurring() const;
     void setBiliteralBlurring(bool biliteralBlurring);
