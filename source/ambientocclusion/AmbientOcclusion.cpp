@@ -78,11 +78,6 @@ void AmbientOcclusion::setupProjection()
     m_grid->setNearFar(zNear, zFar);
 }
 
-void AmbientOcclusion::setupKernelAndRotationTex()
-{
-    m_ambientOcclusionStage->setupKernelAndRotationTex();
-}
-
 void AmbientOcclusion::updateAmbientOcclusion()
 {
     switch (m_occlusionOptions->ambientOcclusion())
@@ -106,7 +101,8 @@ void AmbientOcclusion::updateAmbientOcclusion()
     const auto width = m_viewportCapability->width(), height = m_viewportCapability->height();
     m_ambientOcclusionStage->updateFramebuffer(width, height);
 
-    m_ambientOcclusionStage->setupKernelAndRotationTex();
+    m_ambientOcclusionStage->setupKernel();
+    m_ambientOcclusionStage->setupRotationTex();
 }
 
 void AmbientOcclusion::updateFramebuffers()

@@ -100,9 +100,13 @@ gloperate::UniformGroup* AmbientOcclusionStage::getUniformGroup()
     return m_uniformGroup.get();
 }
 
-void AmbientOcclusionStage::setupKernelAndRotationTex()
+void AmbientOcclusionStage::setupKernel()
 {
     m_kernel = std::vector<glm::vec3>(getKernel(m_occlusionOptions->maxKernelSize()));
+}
+
+void AmbientOcclusionStage::setupRotationTex()
+{
     std::vector<glm::vec3> rotationValues = getNoiseTexture(m_occlusionOptions->rotationTexSize());
 
     if (!m_rotationTex)
