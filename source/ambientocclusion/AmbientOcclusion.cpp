@@ -198,8 +198,9 @@ void AmbientOcclusion::drawGeometry()
     glEnable(GL_CULL_FACE);
 
     glm::mat4 model{};
-    model = glm::translate(model, glm::vec3(-20, 60, 20));
+    model = glm::translate(model, glm::vec3(20, 0, 0));
     model = glm::scale(model, glm::vec3(0.1f));
+    model = glm::rotate(model, 3.14f, glm::vec3(0, 0, 1));
     model = glm::rotate(model, 3.14f / 2.0f, glm::vec3(1, 0, 0));
     //model = glm::translate(model, glm::vec3(-120, 0, -500));
     setUniforms(*m_geometryStage->getUniformGroup(),
