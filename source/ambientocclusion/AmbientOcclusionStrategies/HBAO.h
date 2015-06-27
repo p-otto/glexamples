@@ -13,7 +13,7 @@ public:
     virtual std::vector<glm::vec3> getNoiseTexture(int size) override;
 
     virtual void process(globjects::Texture *normalsDepth, globjects::Texture * color) override;
-    virtual void setupKernel();
+    virtual void setupKernel() override;
 
 protected:
     std::vector<float> m_samplingDirections;
