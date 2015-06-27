@@ -2,13 +2,59 @@
 #extension GL_ARB_explicit_attrib_location : require
 
 in vec2 v_uv;
+in vec3 v_viewRay;
+
+uniform sampler2D u_normal_depth;
+#define ROTATION_SIZE 4
+uniform sampler2D u_rotation;
+
+uniform int u_kernelSize;
+#define numSamples 5
+#define stepSize 0.01
 
 #define MAX_KERNEL_SIZE 128
 uniform float kernel[MAX_KERNEL_SIZE];
 
-layout(location = 0) out float occlusion;
+layout(location = 0) out vec3 occlusion;
+
+const float pi = 3.14159265;
+
+vec3 calcPosition(float depth)
+{
+    return v_viewRay * depth;
+}
+
+float angle(vec3 v0, vec3 v1) {
+	return acos(dot(v0, v1));
+}
 
 void main()
 {
-    occlusion = 0.0;
+    float depth = texture(u_normal_depth, v_uv).a;
+    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
+    normal = normalize(normal);
+
+    vec3 position = calcPosition(depth);
+
+    float ambientOcclusion = 0.0;
+    for (int i = 0; i < u_kernelSize; i++) {
+    	vec3 direction = vec3(sin(kernel[i]), cos(kernel[i]), 0.0);
+    	direction = normalize(direction);
+
+    	float tangentAngle = 0.0;
+
+    	float largestHorizonAngle = 0.0;
+    	for (int step = 1; step < numSamples; step++) {
+    		vec2 offset = direction.xy * stepSize * step;
+    		float sampleDepth = texture(u_normal_depth, v_uv + offset).a;
+    		float horizonAngle = atan((sampleDepth - depth)/ length(offset));
+
+    		largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
+    	}
+    	ambientOcclusion += sin(largestHorizonAngle) - sin(tangentAngle);
+    }
+    ambientOcclusion /= u_kernelSize;
+
+    //ambientOcclusion = 1.0 - ambientOcclusion;
+    occlusion = vec3(ambientOcclusion);
 }
