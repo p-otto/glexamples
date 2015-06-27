@@ -18,7 +18,7 @@ using namespace gl;
 using namespace globjects;
 
 MixStage::MixStage(const AmbientOcclusionOptions * options) 
-	: m_occlusionOptions(options)
+:   m_occlusionOptions(options)
 {}
 
 void MixStage::initialize()

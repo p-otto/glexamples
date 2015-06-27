@@ -28,7 +28,7 @@ void SSDO::initializeMethodSpecific()
     m_program = new Program{};
     m_program->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_indirect.frag")
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_bounce.frag")
     );
 
     m_directLightingShader = new Program{};
@@ -37,7 +37,15 @@ void SSDO::initializeMethodSpecific()
         Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_direct.frag")
     );
 
-    // init fbo and tex ...
+    m_firstPassAttachment = Texture::createDefault(GL_TEXTURE_2D);
+
+    m_firstPassFbo = new Framebuffer{};
+    m_firstPassFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_firstPassAttachment);
+}
+
+void SSDO::updateFramebufferMethodSpecific(const int width, const int height)
+{
+    m_firstPassAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 }
 
 std::vector<glm::vec3> SSDO::getKernel(int size)
@@ -84,7 +92,51 @@ std::vector<glm::vec3> SSDO::getNoiseTexture(int size)
     return tex;
 }
 
-void SSDO::process(globjects::Texture *normalsDepth)
+void SSDO::process(globjects::Texture * normalsDepth, globjects::Texture * color)
 {
+    // first pass: direct lighting
+    m_screenAlignedQuad->setProgram(m_directLightingShader);
 
+    m_firstPassFbo->bind();
+    m_firstPassFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
+
+    m_screenAlignedQuad->setTextures({
+        { "u_normal_depth", normalsDepth },
+        { "u_rotation", m_rotationTex },
+        { "u_color", color }
+    });
+
+    m_uniformGroup->addToProgram(m_screenAlignedQuad->program());
+
+    glProgramUniform3fv(
+        m_screenAlignedQuad->program()->id(),
+        m_screenAlignedQuad->program()->getUniformLocation("kernel"),
+        m_occlusionOptions->kernelSize(),
+        glm::value_ptr((m_kernel)[0])
+    );
+
+    m_screenAlignedQuad->draw();
+
+    // second pass: bounce
+    m_screenAlignedQuad->setProgram(m_program);
+
+    m_occlusionFbo->bind();
+    m_occlusionFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.0, 0.0, 0.0, 0.0 });
+
+    m_screenAlignedQuad->setTextures({
+        { "u_normal_depth", normalsDepth },
+        { "u_rotation", m_rotationTex },
+        { "u_direct_light", m_firstPassAttachment }
+    });
+
+    glProgramUniform3fv(
+        m_screenAlignedQuad->program()->id(),
+        m_screenAlignedQuad->program()->getUniformLocation("kernel"),
+        m_occlusionOptions->kernelSize(),
+        glm::value_ptr((m_kernel)[0])
+    );
+
+    m_uniformGroup->addToProgram(m_screenAlignedQuad->program());
+
+    m_screenAlignedQuad->draw();
 }

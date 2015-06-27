@@ -230,16 +230,17 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     setUniforms(*m_ambientOcclusionStage->getUniformGroup(),
         "u_invProj", glm::inverse(m_projectionCapability->projection()),
         "u_proj", m_projectionCapability->projection(),
+        "u_view", m_cameraCapability->view(),
         "u_farPlane", m_projectionCapability->zFar(),
         "u_resolutionX", m_viewportCapability->width(),
         "u_resolutionY", m_viewportCapability->height(),
         "u_kernelSize", m_occlusionOptions->kernelSize(),
-        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
-        "u_attenuation", m_occlusionOptions->attenuation()
+        "u_kernelRadius", m_occlusionOptions->kernelRadius()
     );
+    auto colorTexture = m_geometryStage->getColorTexture();
     auto normalDepthTexture = m_geometryStage->getNormalDepthTexture();
 
-    m_ambientOcclusionStage->process(normalDepthTexture);
+    m_ambientOcclusionStage->process(normalDepthTexture, colorTexture);
 
     // blur ambient occlusion texture
     glViewport(
@@ -264,7 +265,6 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     default_framebuffer->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto blurTexture = m_blurStage->getBlurredTexture();
-    auto colorTexture = m_geometryStage->getColorTexture();
     auto depthBuffer = m_geometryStage->getDepthBuffer();
     m_mixStage->process(colorTexture, blurTexture, normalDepthTexture, depthBuffer);
 }

@@ -17,17 +17,17 @@ layout(location = 0) out vec3 occlusion;
 void main()
 {
     vec4 normal_depth = texture(u_normal_depth, v_uv);
-    
+
     occlusion = vec3(0.0);
     float count = 0.0;
     for (int y = -u_kernelSize; y <= u_kernelSize; ++y)
     {
         vec2 cur_uv = v_uv + vec2(0, y * EPSILON);
-        
+
         if (u_biliteral)
         {
             vec4 cur_normal_depth = texture(u_normal_depth, cur_uv);
-            
+
             float depth_test = abs(normal_depth.a - cur_normal_depth.a) < COMP_DEPTH ? 1.0 : 0.0;
             float normal_test = dot(normal_depth.xyz * 2.0 - vec3(1.0), cur_normal_depth.xyz * 2.0 - vec3(1.0)) > COMP_NORMAL ? 1.0 : 0.0;
             occlusion += texture(u_occlusion, cur_uv).rgb * depth_test * normal_test;

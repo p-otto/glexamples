@@ -13,12 +13,6 @@
 class AmbientOcclusionOptions;
 class ScreenAlignedQuadRenderer;
 
-class AmbientOcclusionStrategy;
-class SSAOHemisphere;
-class SSAOSphere;
-class SSAONone;
-class SSDO;
-
 namespace globjects
 {
     class Framebuffer;
@@ -38,7 +32,7 @@ public:
     virtual ~AmbientOcclusionStage() = default;
 
     void initialize();
-    virtual void process(globjects::Texture *normalsDepth);
+    virtual void process(globjects::Texture * normalsDepth, globjects::Texture * color);
 
     globjects::Texture * getOcclusionTexture();
     gloperate::UniformGroup * getUniformGroup();
@@ -50,6 +44,7 @@ protected:
     virtual std::vector<glm::vec3> getKernel(int size) = 0;
     virtual std::vector<glm::vec3> getNoiseTexture(int size) = 0;
     virtual void initializeMethodSpecific();
+    virtual void updateFramebufferMethodSpecific(const int width, const int height);
 
     /* members */
     const AmbientOcclusionOptions * m_occlusionOptions;

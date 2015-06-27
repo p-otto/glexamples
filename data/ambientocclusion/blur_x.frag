@@ -23,11 +23,11 @@ void main()
     for (int x = -u_kernelSize; x <= u_kernelSize; ++x)
     {
         vec2 cur_uv = v_uv + vec2(x * EPSILON, 0);
-        
+
         if (u_biliteral)
         {
             vec4 cur_normal_depth = texture(u_normal_depth, cur_uv);
-            
+
             float depth_test = abs(normal_depth.a - cur_normal_depth.a) < COMP_DEPTH ? 1.0 : 0.0;
             float normal_test = dot(normal_depth.xyz * 2.0 - vec3(1.0), cur_normal_depth.xyz * 2.0 - vec3(1.0)) > COMP_NORMAL ? 1.0 : 0.0;
             occlusion += texture(u_occlusion, cur_uv).rgb * depth_test * normal_test;

@@ -73,7 +73,6 @@ void GeometryStage::updateFramebuffer(const int width, const int height)
 
 void GeometryStage::process()
 {
-    glm::ivec3 color{21, 243, 103};
     auto program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
 
     program->use();
@@ -83,13 +82,7 @@ void GeometryStage::process()
     m_plane->draw();
     for (auto & drawable : m_drawables)
     {
-        program->setUniform("u_color", glm::vec3(color) / 256.0f);
         drawable.draw();
-
-        color = glm::vec3((color.r + 68) % 256,
-                          (color.g + 64) % 256,
-                          (color.b + 99) % 256
-        );
     }
 
     program->release();

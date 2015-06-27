@@ -55,10 +55,14 @@ void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
     }
 
     m_occlusionAttachment->image2D(0, GL_RGB8, occlusionWidth, occlusionHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-    m_occlusionAttachment->image2D(0, GL_RGB8, occlusionWidth, occlusionHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+    updateFramebufferMethodSpecific(occlusionWidth, occlusionHeight);
 }
 
-void AmbientOcclusionStage::process(globjects::Texture *normalsDepth)
+void AmbientOcclusionStage::updateFramebufferMethodSpecific(const int width, const int height)
+{}
+
+void AmbientOcclusionStage::process(globjects::Texture * normalsDepth, globjects::Texture * color)
 {
     m_screenAlignedQuad->setProgram(m_program);
 

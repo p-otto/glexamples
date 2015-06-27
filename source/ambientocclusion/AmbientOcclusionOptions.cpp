@@ -46,10 +46,6 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::halfResolution,
         &AmbientOcclusionOptions::setHalfResolution);
 
-    ao_group->addProperty<bool>("attenuation", this,
-        &AmbientOcclusionOptions::attenuation,
-        &AmbientOcclusionOptions::setAttenuation);
-
     blur_group->addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
         &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
@@ -113,16 +109,6 @@ float AmbientOcclusionOptions::kernelRadius() const
 void AmbientOcclusionOptions::setKernelRadius(float kernelRadius)
 {
     m_kernelRadius = kernelRadius;
-}
-
-bool AmbientOcclusionOptions::attenuation() const
-{
-    return m_attenuation;
-}
-
-void AmbientOcclusionOptions::setAttenuation(bool attenuation)
-{
-    m_attenuation = attenuation;
 }
 
 bool AmbientOcclusionOptions::halfResolution() const {
