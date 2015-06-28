@@ -9,6 +9,8 @@ uniform sampler2D u_diffuse;
 uniform sampler2D u_blur;
 uniform sampler2D u_depth;
 
+uniform float u_ambient_factor;
+
 layout(location = 0) out vec4 fragColor;
 
 #include "/utility"
@@ -20,5 +22,5 @@ void main()
     vec3 occlusion = texture(u_blur, v_uv).rgb;
 
     gl_FragDepth = texture(u_depth, v_uv).r;
-    fragColor = vec4(evaluatePhong(ambient, diffuse, occlusion), 1.0);
+    fragColor = vec4(evaluatePhong(u_ambient_factor * ambient, (1.0 - u_ambient_factor) * diffuse, occlusion), 1.0);
 }

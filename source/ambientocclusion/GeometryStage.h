@@ -49,7 +49,6 @@ private:
     globjects::ref_ptr<globjects::Texture> m_normalDepthAttachment;
     globjects::ref_ptr<globjects::Texture> m_depthBuffer;
 
-    globjects::ref_ptr<globjects::Program> m_modelProgram;
     globjects::ref_ptr<globjects::Program> m_phongProgram;
 
     std::vector<gloperate::PolygonalDrawable> m_drawables;

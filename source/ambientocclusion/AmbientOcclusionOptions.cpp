@@ -19,9 +19,9 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { ScreenSpaceDirectional, "SSDO" }
     });
 
-    m_painter.addProperty<bool>("phong", this,
-        &AmbientOcclusionOptions::phong,
-        &AmbientOcclusionOptions::setPhong);
+    m_painter.addProperty<float>("ambient", this,
+        &AmbientOcclusionOptions::ambient,
+        &AmbientOcclusionOptions::setAmbient);
 
     auto ao_group = m_painter.addGroup("ssao");
     auto blur_group = m_painter.addGroup("blurring");
@@ -66,14 +66,6 @@ AmbientOcclusionType AmbientOcclusionOptions::ambientOcclusion() const {
 void AmbientOcclusionOptions::setAmbientOcclusion(AmbientOcclusionType ambientOcclusion) {
     m_ambientOcclusion = ambientOcclusion;
     m_ambientOcclusionChanged = true;
-}
-
-bool AmbientOcclusionOptions::phong() const {
-    return m_phong;
-}
-
-void AmbientOcclusionOptions::setPhong(bool phong) {
-    m_phong = phong;
 }
 
 int AmbientOcclusionOptions::maxKernelSize() const
@@ -128,6 +120,16 @@ bool AmbientOcclusionOptions::biliteralBlurring() const
 void AmbientOcclusionOptions::setBiliteralBlurring(bool biliteralBlurring)
 {
     m_biliteralBlurring = biliteralBlurring;
+}
+
+float AmbientOcclusionOptions::ambient() const
+{
+    return m_ambientTerm;
+}
+
+void AmbientOcclusionOptions::setAmbient(float ambient)
+{
+    m_ambientTerm = ambient;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const

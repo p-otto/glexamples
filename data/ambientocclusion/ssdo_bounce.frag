@@ -7,10 +7,13 @@ in vec3 v_viewRay;
 
 uniform sampler2D u_normal_depth;
 uniform sampler2D u_direct_light;
+uniform sampler2D u_ambient;
+uniform sampler2D u_diffuse;
 #define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
+uniform mat4 u_invProj;
 uniform float u_farPlane;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
@@ -23,14 +26,14 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
-const float color_bleeding_strength = 3.0;
+const float color_bleeding_strength = 1.0;
 
 #include "/utility"
 
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a;
-    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
+    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - 1.0;
     normal = normalize(normal);
 
     vec3 position = calcPosition(v_viewRay, depth);
@@ -59,15 +62,27 @@ void main()
 
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
 
-        // calculate possible color bleeding
-        vec3 transmittance_direction = normalize(position - view_sample_point);
-        vec3 sender_normal = texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0;
+        // calculate sender position in view space
+        vec4 sender_ndc = vec4(ndc_sample_point.xy * 2.0 - 1.0, linearDepthToLogDepth(linear_sample_depth, u_proj) * 2.0 - 1.0, 1.0);
+        sender_ndc = u_invProj * sender_ndc;
+        vec3 sender_position = sender_ndc.xyz / sender_ndc.w;
+
+        // calculate angles between transmission direction and the both normals
+        vec3 transmittance_direction = normalize(position - sender_position);
+        vec3 sender_normal = normalize(texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0);
         float sender_transmittance_cos = max(0.0, dot(sender_normal, transmittance_direction));
         float receiver_transmittance_cos = max(0.0, dot(normal, -transmittance_direction));
         // TODO: factor in attenuation
         //float dist = abs(linear_comp_depth - linear_sample_depth);
 
-        color_bleeding += color_bleeding_strength * texture(u_direct_light, ndc_sample_point.xy).rgb * occluded * sender_transmittance_cos * receiver_transmittance_cos;
+        vec3 ambient = texture(u_ambient, ndc_sample_point.xy).rgb;
+        vec3 diffuse = texture(u_diffuse, ndc_sample_point.xy).rgb;
+        vec3 direct_light = texture(u_direct_light, ndc_sample_point.xy).rgb;
+
+        vec3 cur_color_bleeding = color_bleeding_strength * evaluatePhong(vec3(0.0), diffuse, direct_light) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
+        //vec3 cur_color_bleeding = color_bleeding_strength * vec3(1.0, 0.0, 0.0) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
+        color_bleeding += clamp(cur_color_bleeding, 0.0, 1.0);
+        //color_bleeding += color_bleeding_strength * vec3(1.0, 0.0, 0.0) * sender_transmittance_cos * receiver_transmittance_cos;
     }
 
     color_bleeding /= u_kernelSize;

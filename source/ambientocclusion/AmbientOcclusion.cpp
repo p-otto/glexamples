@@ -207,7 +207,8 @@ void AmbientOcclusion::drawGeometry()
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,
-        "u_farPlane", m_projectionCapability->zFar()
+        "u_farPlane", m_projectionCapability->zFar(),
+        "u_nearPlane", m_projectionCapability->zNear()
     );
     m_geometryStage->process();
 
@@ -246,7 +247,7 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     auto diffuseTexture = m_geometryStage->getDiffuseTexture();
     auto normalDepthTexture = m_geometryStage->getNormalDepthTexture();
 
-    m_ambientOcclusionStage->process(normalDepthTexture);
+    m_ambientOcclusionStage->process(normalDepthTexture, { ambientTexture, diffuseTexture });
 
     // blur ambient occlusion texture
     glViewport(

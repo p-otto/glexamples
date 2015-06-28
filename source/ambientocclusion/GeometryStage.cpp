@@ -32,12 +32,6 @@ GeometryStage::GeometryStage(const AmbientOcclusionOptions * options)
 void GeometryStage::initialize(const gloperate::Scene * scene)
 {
     // Shader
-    m_modelProgram = new Program{};
-    m_modelProgram->attach(
-        Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
-    );
-
     m_phongProgram = new Program{};
     m_phongProgram->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
@@ -81,7 +75,7 @@ void GeometryStage::process()
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
     m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-    auto program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
+    auto program = m_phongProgram;
 
     program->use();
 

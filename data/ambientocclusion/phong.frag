@@ -7,6 +7,7 @@ in float v_depth;
 in vec3 v_worldPos;
 in vec3 v_worldNormal;
 
+uniform float u_nearPlane;
 uniform float u_farPlane;
 
 layout(location = 0) out vec3 ambientColor;
@@ -15,14 +16,11 @@ layout(location = 2) out vec4 normal_depth;
 
 #include "/lights"
 
-float ambient_factor = 0.7;
-float diffuse_factor = 0.3;
-
 void main()
 {
     vec3 norm_normal = normalize(v_normal);
     normal_depth = vec4(norm_normal * 0.5 + 0.5,
-                        -v_depth / u_farPlane);
+                        (-v_depth - u_nearPlane) / (u_farPlane - u_nearPlane));
 
     // only use ambient and diffuse terms
     vec3 diffuse = vec3(0.0);
@@ -34,6 +32,6 @@ void main()
     }
     diffuse = clamp(diffuse, 0.0, 1.0);
 
-    ambientColor = ambient_factor * vec3(1.0);
-    diffuseColor = diffuse_factor * vec3(diffuse);
+    ambientColor = vec3(1.0);
+    diffuseColor = vec3(diffuse);
 }

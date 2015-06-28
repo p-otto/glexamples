@@ -24,3 +24,10 @@ vec3 evaluatePhong(vec3 ambient, vec3 diffuse, vec3 occlusion)
 {
     return ambient * occlusion + diffuse;
 }
+
+float linearDepthToLogDepth(float depth, mat4 proj)
+{
+    float A = proj[2].z;
+    float B = proj[3].z;
+    return 0.5*(-A*depth + B) / depth + 0.5;
+}
