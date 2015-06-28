@@ -9,6 +9,8 @@ uniform sampler2D u_normal_depth;
 uniform sampler2D u_rotation;
 
 uniform int u_kernelSize;
+uniform int u_resolutionX;
+uniform int u_resolutionY;
 #define numSamples 5
 #define stepSize 0.01
 
@@ -24,8 +26,8 @@ vec3 calcPosition(float depth)
     return v_viewRay * depth;
 }
 
-float angle(vec3 v0, vec3 v1) {
-	return acos(dot(v0, v1));
+vec2 snapToGrid(vec2 offset) {
+	return round(offset * vec2(u_resolutionX, u_resolutionY)) / vec2(u_resolutionX, u_resolutionY);
 }
 
 void main()
@@ -38,16 +40,16 @@ void main()
 
     float ambientOcclusion = 0.0;
     for (int i = 0; i < u_kernelSize; i++) {
-    	vec3 direction = vec3(sin(kernel[i]), cos(kernel[i]), 0.0);
-    	direction = normalize(direction);
+    	vec2 offset = snapToGrid(vec2(sin(kernel[i]), cos(kernel[i])));
+    	offset = normalize(offset);
 
     	float tangentAngle = 0.0;
 
     	float largestHorizonAngle = 0.0;
     	for (int step = 1; step < numSamples; step++) {
-    		vec2 offset = direction.xy * stepSize * step;
-    		float sampleDepth = texture(u_normal_depth, v_uv + offset).a;
-    		float horizonAngle = atan((sampleDepth - depth)/ length(offset));
+    		vec2 sampleOffset = offset.xy * stepSize * step;
+    		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
+    		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
 
     		largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
     	}
@@ -55,6 +57,5 @@ void main()
     }
     ambientOcclusion /= u_kernelSize;
 
-    //ambientOcclusion = 1.0 - ambientOcclusion;
     occlusion = vec3(ambientOcclusion);
 }
