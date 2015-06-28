@@ -21,7 +21,11 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 
     m_painter.addProperty<float>("ambient", this,
         &AmbientOcclusionOptions::ambient,
-        &AmbientOcclusionOptions::setAmbient);
+        &AmbientOcclusionOptions::setAmbient)->setOptions({
+        { "minimum", 0.0f },
+        { "maximum", 1.0f },
+        { "step", 0.1f }
+    });
 
     auto ao_group = m_painter.addGroup("ssao");
     auto blur_group = m_painter.addGroup("blurring");
