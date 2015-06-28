@@ -130,8 +130,6 @@ void AmbientOcclusion::onInitialize()
 
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
 
-    m_screenAlignedQuad = gloperate::make_unique<ScreenAlignedQuadRenderer>();
-
     std::ifstream t("data/ambientocclusion/lights.glsl");
     std::stringstream buffer;
     buffer << t.rdbuf();
@@ -202,7 +200,6 @@ void AmbientOcclusion::drawGeometry()
     model = glm::scale(model, glm::vec3(0.1f));
     model = glm::rotate(model, 3.14f, glm::vec3(0, 0, 1));
     model = glm::rotate(model, 3.14f / 2.0f, glm::vec3(1, 0, 0));
-    //model = glm::translate(model, glm::vec3(-120, 0, -500));
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,

@@ -10,7 +10,6 @@
 
 #include <gloperate/painter/Painter.h>
 
-class ScreenAlignedQuadRenderer;
 class AmbientOcclusionOptions;
 
 class BlurStage;
@@ -70,5 +69,4 @@ protected:
     std::unique_ptr<MixStage> m_mixStage;
 
     globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    std::unique_ptr<ScreenAlignedQuadRenderer> m_screenAlignedQuad;
 };
