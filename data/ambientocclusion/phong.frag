@@ -9,6 +9,8 @@ in vec3 v_worldNormal;
 
 uniform float u_nearPlane;
 uniform float u_farPlane;
+uniform vec3 u_color;
+
 
 layout(location = 0) out vec3 ambientColor;
 layout(location = 1) out vec3 diffuseColor;
@@ -32,6 +34,6 @@ void main()
     }
     diffuse = clamp(diffuse, 0.0, 1.0);
 
-    ambientColor = vec3(1.0);
-    diffuseColor = vec3(diffuse);
+    ambientColor = vec3(u_color);
+    diffuseColor = vec3(diffuse * u_color);
 }

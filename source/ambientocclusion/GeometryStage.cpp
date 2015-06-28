@@ -75,19 +75,30 @@ void GeometryStage::process()
     m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
     m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-    auto program = m_phongProgram;
+    glm::ivec3 color{21, 243, 103};
 
-    program->use();
+    m_phongProgram->use();
 
-    m_uniformGroup->addToProgram(program);
+    m_uniformGroup->addToProgram(m_phongProgram);
 
     m_plane->draw();
     for (auto & drawable : m_drawables)
     {
+        if (m_occlusionOptions->color()) {
+            m_phongProgram->setUniform("u_color", glm::vec3(color) / 256.0f);
+        }
+        else {
+            m_phongProgram->setUniform("u_color", glm::vec3(1.0));
+        }
         drawable.draw();
+
+        color = glm::vec3((color.r + 68) % 256,
+                          (color.g + 64) % 256,
+                          (color.b + 99) % 256
+        );
     }
 
-    program->release();
+    m_phongProgram->release();
 }
 
 globjects::Texture * GeometryStage::getAmbientTexture()

@@ -19,7 +19,11 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { ScreenSpaceDirectional, "SSDO" }
     });
 
-    m_painter.addProperty<float>("ambient", this,
+    auto phong_group = m_painter.addGroup("phong");
+    auto ao_group = m_painter.addGroup("ssao");
+    auto blur_group = m_painter.addGroup("blurring");
+
+    phong_group->addProperty<float>("ambient", this,
         &AmbientOcclusionOptions::ambient,
         &AmbientOcclusionOptions::setAmbient)->setOptions({
         { "minimum", 0.0f },
@@ -27,8 +31,9 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         { "step", 0.1f }
     });
 
-    auto ao_group = m_painter.addGroup("ssao");
-    auto blur_group = m_painter.addGroup("blurring");
+    phong_group->addProperty<bool>("color", this,
+        &AmbientOcclusionOptions::color,
+        &AmbientOcclusionOptions::setColor);
 
     ao_group->addProperty<int>("kernel_size", this,
         &AmbientOcclusionOptions::kernelSize,
@@ -134,6 +139,16 @@ float AmbientOcclusionOptions::ambient() const
 void AmbientOcclusionOptions::setAmbient(float ambient)
 {
     m_ambientTerm = ambient;
+}
+
+bool AmbientOcclusionOptions::color() const
+{
+    return m_color;
+}
+
+void AmbientOcclusionOptions::setColor(bool color)
+{
+    m_color = color;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const
