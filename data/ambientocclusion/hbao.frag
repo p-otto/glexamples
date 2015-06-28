@@ -13,7 +13,7 @@ uniform float u_kernelRadius;
 uniform mat4 u_proj;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
-#define numSamples 5
+#define NUM_SAMPLES 5
 
 #define MAX_KERNEL_SIZE 128
 uniform float kernel[MAX_KERNEL_SIZE];
@@ -32,6 +32,19 @@ vec2 snapToGrid(vec2 offset)
 	return round(offset * vec2(u_resolutionX, u_resolutionY)) / vec2(u_resolutionX, u_resolutionY);
 }
 
+float findHorizonAngle(vec2 offset, int numSamples, float depth)
+{
+	float largestHorizonAngle = 0.0;
+	for (int step = 1; step < numSamples; step++) {
+		vec2 sampleOffset = offset * step;
+		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
+		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
+
+		largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
+	}
+	return largestHorizonAngle;
+}
+
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a;
@@ -41,7 +54,7 @@ void main()
     vec3 position = calcPosition(depth);
 
     float ambientOcclusion = 0.0;
-    float stepSize = u_kernelRadius / numSamples;
+    float stepSize = u_kernelRadius / NUM_SAMPLES;
 
     for (int i = 0; i < u_kernelSize; i++) {
     	vec2 sampleDirection = vec2(sin(kernel[i]), cos(kernel[i]));
@@ -49,16 +62,9 @@ void main()
     	vec2 offset = snapToGrid(scaledDirection.xy);
 
     	float tangentAngle = 0.0;
-
-    	float largestHorizonAngle = 0.0;
-    	for (int step = 1; step < numSamples; step++) {
-    		vec2 sampleOffset = offset * step;
-    		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
-    		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
-
-    		largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
-    	}
-    	ambientOcclusion += sin(largestHorizonAngle) - sin(tangentAngle);
+    	float horizonAngle = findHorizonAngle(offset, NUM_SAMPLES, depth);
+    	
+    	ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
     }
     ambientOcclusion /= u_kernelSize;
 
