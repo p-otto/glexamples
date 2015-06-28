@@ -6,7 +6,6 @@ in vec2 v_uv;
 in vec3 v_viewRay;
 
 uniform sampler2D u_normal_depth;
-uniform sampler2D u_color;
 #define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
@@ -17,14 +16,13 @@ uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform float u_kernelRadius;
 uniform int u_kernelSize;
-uniform bool u_attenuation;
 
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
-#include "/lights"
+const vec3 ambient_color = vec3(1.0);
 
 mat3 calcRotatedTbn(vec3 normal)
 {
@@ -71,6 +69,7 @@ void main()
 
         if (ndc_sample_point.x > 1 || ndc_sample_point.y > 1 || ndc_sample_point.x < 0 || ndc_sample_point.y < 0)
         {
+            occlusion += ambient_color;
             continue;
         }
 
@@ -80,21 +79,10 @@ void main()
 
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
 
-        // calculate direct light from point lights
-        vec3 sample_to_position = normalize(position - view_sample_point);
-        vec3 incoming_radiance = vec3(0.0);
-        for (int j = 0; j < LIGHT_COUNT; ++j)
-        {
-            vec3 light_pos = (u_view * vec4(light_positions[j], 1.0)).xyz;
-            vec3 light_to_position = normalize(position - light_pos);
-
-            float sample_light_cos = max(0.0, dot(light_to_position, sample_to_position));
-            float dist = length(light_pos - position);
-            float attenuation = min(1.0, 1.0 / (dist * dist * attenuation_factor));
-            incoming_radiance += light_colors[j] * sample_light_cos * attenuation;
-        }
-        float angle_cos = max(0, dot(normalize(view_sample_point - position), normal));
-        occlusion += angle_cos * incoming_radiance * (1.0 - occluded);
+        // direct lighting can be calculated from an environment map, point light, etc.
+        // here, a environment map is simulated by using the up vector as the maximal ambient light
+        vec3 position_to_sample = normalize(view_sample_point - position);
+        occlusion += ambient_color * (1.0 - occluded) * clamp(dot(position_to_sample, vec3(0.0, 1.0, 0.0)) + 1.0, 0.0, 1.0);
     }
 
     occlusion /= u_kernelSize;

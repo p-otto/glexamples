@@ -22,6 +22,8 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
+const float color_bleeding_strength = 3.0;
+
 mat3 calcRotatedTbn(vec3 normal)
 {
     vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
@@ -77,14 +79,14 @@ void main()
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
 
         // calculate possible color bleeding
+        vec3 transmittance_direction = normalize(position - view_sample_point);
         vec3 sender_normal = texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0;
-        float sender_receiver_cos = 1.0 - max(0.0, dot(sender_normal, normal));
-
-        // TODO: factor in attenuation and direction of transmittance
-        //float transmittance_direction_cos = max(0.0, dot(normalize(view_sample_point), sender_normal));
+        float sender_transmittance_cos = max(0.0, dot(sender_normal, transmittance_direction));
+        float receiver_transmittance_cos = max(0.0, dot(normal, -transmittance_direction));
+        // TODO: factor in attenuation
         //float dist = abs(linear_comp_depth - linear_sample_depth);
 
-        color_bleeding += texture(u_direct_light, ndc_sample_point.xy).rgb * occluded * sender_receiver_cos;
+        color_bleeding += color_bleeding_strength * texture(u_direct_light, ndc_sample_point.xy).rgb * occluded * sender_transmittance_cos * receiver_transmittance_cos;
     }
 
     color_bleeding /= u_kernelSize;

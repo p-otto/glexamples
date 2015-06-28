@@ -21,7 +21,7 @@ public:
 	virtual ~MixStage();
 
 	void initialize();
-	void process(globjects::Texture *colorTexture, globjects::Texture *blurTexture, globjects::Texture *normalDepthTexture, globjects::Texture *depthBuffer);
+    void process(globjects::Texture *ambientTexture, globjects::Texture *diffuseTexture, globjects::Texture *blurTexture, globjects::Texture *normalDepthTexture, globjects::Texture *depthBuffer);
 
 protected:
 	const AmbientOcclusionOptions * m_occlusionOptions;

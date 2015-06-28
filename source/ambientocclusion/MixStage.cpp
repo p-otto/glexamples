@@ -32,11 +32,12 @@ void MixStage::initialize()
     );
 }
 
-void MixStage::process(globjects::Texture *colorTexture, globjects::Texture *blurTexture, globjects::Texture *normalDepthTexture, globjects::Texture *depthBuffer)
+void MixStage::process(globjects::Texture *ambientTexture, globjects::Texture *diffuseTexture, globjects::Texture *blurTexture, globjects::Texture *normalDepthTexture, globjects::Texture *depthBuffer)
 {
 	m_screenAlignedQuad->setProgram(m_mixProgram);
 	m_screenAlignedQuad->setTextures({
-		{ "u_color", colorTexture },
+        { "u_ambient", ambientTexture },
+		{ "u_diffuse", diffuseTexture },
 		{ "u_blur", blurTexture },
 		{ "u_normal_depth", normalDepthTexture },
         { "u_depth", depthBuffer }

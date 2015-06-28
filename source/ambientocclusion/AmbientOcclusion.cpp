@@ -214,7 +214,6 @@ void AmbientOcclusion::drawGeometry()
 void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
 {
     // draw geometry to texture
-    m_geometryStage->bindAndClearFbo();
     drawGeometry();
 
     glDisable(GL_DEPTH_TEST);
@@ -239,10 +238,11 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
         "u_kernelSize", m_occlusionOptions->kernelSize(),
         "u_kernelRadius", m_occlusionOptions->kernelRadius()
     );
-    auto colorTexture = m_geometryStage->getColorTexture();
+    auto ambientTexture = m_geometryStage->getAmbientTexture();
+    auto diffuseTexture = m_geometryStage->getDiffuseTexture();
     auto normalDepthTexture = m_geometryStage->getNormalDepthTexture();
 
-    m_ambientOcclusionStage->process(normalDepthTexture, colorTexture);
+    m_ambientOcclusionStage->process(normalDepthTexture);
 
     // blur ambient occlusion texture
     glViewport(
@@ -268,5 +268,5 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
 
     auto blurTexture = m_blurStage->getBlurredTexture();
     auto depthBuffer = m_geometryStage->getDepthBuffer();
-    m_mixStage->process(colorTexture, blurTexture, normalDepthTexture, depthBuffer);
+    m_mixStage->process(ambientTexture, diffuseTexture, blurTexture, normalDepthTexture, depthBuffer);
 }

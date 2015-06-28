@@ -34,7 +34,7 @@ void SSDO::initializeMethodSpecific()
     m_directLightingShader = new Program{};
     m_directLightingShader->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_direct.frag", { "/lights" })
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/ssdo_direct.frag")
     );
 
     m_firstPassAttachment = Texture::createDefault(GL_TEXTURE_2D);
@@ -92,7 +92,7 @@ std::vector<glm::vec3> SSDO::getNoiseTexture(int size)
     return tex;
 }
 
-void SSDO::process(globjects::Texture * normalsDepth, globjects::Texture * color)
+void SSDO::process(globjects::Texture * normalsDepth)
 {
     // first pass: direct lighting
     m_screenAlignedQuad->setProgram(m_directLightingShader);
@@ -103,7 +103,6 @@ void SSDO::process(globjects::Texture * normalsDepth, globjects::Texture * color
     m_screenAlignedQuad->setTextures({
         { "u_normal_depth", normalsDepth },
         { "u_rotation", m_rotationTex },
-        { "u_color", color }
     });
 
     m_uniformGroup->addToProgram(m_screenAlignedQuad->program());

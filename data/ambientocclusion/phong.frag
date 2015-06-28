@@ -9,12 +9,14 @@ in vec3 v_worldNormal;
 
 uniform float u_farPlane;
 
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 normal_depth;
+layout(location = 0) out vec3 ambientColor;
+layout(location = 1) out vec3 diffuseColor;
+layout(location = 2) out vec4 normal_depth;
 
 #include "/lights"
 
-vec3 ambient = vec3(0.3);
+float ambient_factor = 0.7;
+float diffuse_factor = 0.3;
 
 void main()
 {
@@ -30,5 +32,8 @@ void main()
     	float light_normal_cos = max(0.0, dot(normalize(v_worldNormal), pos_to_light));
     	diffuse += light_normal_cos * light_colors[i];
     }
-    fragColor = vec4(ambient + diffuse, 1.0);
+    diffuse = clamp(diffuse, 0.0, 1.0);
+
+    ambientColor = ambient_factor * vec3(1.0);
+    diffuseColor = diffuse_factor * vec3(diffuse);
 }

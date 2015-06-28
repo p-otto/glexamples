@@ -54,6 +54,7 @@ void main()
 
         if (ndc_sample_point.x > 1 || ndc_sample_point.y > 1 || ndc_sample_point.x < 0 || ndc_sample_point.y < 0)
         {
+            occlusion_factor += 0.5 / u_kernelSize;
             continue;
         }
 

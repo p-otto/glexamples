@@ -3,7 +3,8 @@
 
 in vec2 v_uv;
 
-uniform sampler2D u_color;
+uniform sampler2D u_ambient;
+uniform sampler2D u_diffuse;
 uniform sampler2D u_blur;
 uniform sampler2D u_depth;
 
@@ -11,9 +12,10 @@ layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    vec3 color = texture(u_color, v_uv).rgb;
+    vec3 ambient = texture(u_ambient, v_uv).rgb;
+    vec3 diffuse = texture(u_diffuse, v_uv).rgb;
     vec3 occlusion = texture(u_blur, v_uv).rgb;
 
     gl_FragDepth = texture(u_depth, v_uv).r;
-    fragColor = vec4(color * occlusion, 1.0);
+    fragColor = vec4(ambient * occlusion + diffuse, 1.0);
 }
