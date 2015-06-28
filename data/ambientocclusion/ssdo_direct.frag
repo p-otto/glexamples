@@ -22,29 +22,9 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
+#include "/utility"
+
 const vec3 ambient_color = vec3(1.0);
-
-mat3 calcRotatedTbn(vec3 normal)
-{
-    vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
-    vec3 rvec = texture(u_rotation, v_uv * noise_scale).xyz;
-    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
-    vec3 bitangent = cross(normal, tangent);
-    return mat3(tangent, bitangent, normal);
-}
-
-mat3 calcTbn(vec3 normal)
-{
-    vec3 rvec = vec3(0, 1, 0);
-    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
-    vec3 bitangent = cross(normal, tangent);
-    return mat3(tangent, bitangent, normal);
-}
-
-vec3 calcPosition(float depth)
-{
-    return v_viewRay * depth;
-}
 
 void main()
 {
@@ -52,8 +32,8 @@ void main()
     vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
     normal = normalize(normal);
 
-    vec3 position = calcPosition(depth);
-    mat3 tbn = calcRotatedTbn(normal);
+    vec3 position = calcPosition(v_viewRay, depth);
+    mat3 tbn = calcRotatedTbn(u_rotation, normal, v_uv, u_resolutionX, u_resolutionY);
 
     vec3 occlusion = vec3(0.0);
     for (int i = 0; i < u_kernelSize; ++i)

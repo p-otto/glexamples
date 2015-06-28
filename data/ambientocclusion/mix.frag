@@ -1,5 +1,6 @@
 #version 150 core
 #extension GL_ARB_explicit_attrib_location : require
+#extension GL_ARB_shading_language_include : require
 
 in vec2 v_uv;
 
@@ -10,6 +11,8 @@ uniform sampler2D u_depth;
 
 layout(location = 0) out vec4 fragColor;
 
+#include "/utility"
+
 void main()
 {
     vec3 ambient = texture(u_ambient, v_uv).rgb;
@@ -17,5 +20,5 @@ void main()
     vec3 occlusion = texture(u_blur, v_uv).rgb;
 
     gl_FragDepth = texture(u_depth, v_uv).r;
-    fragColor = vec4(ambient * occlusion + diffuse, 1.0);
+    fragColor = vec4(evaluatePhong(ambient, diffuse, occlusion), 1.0);
 }

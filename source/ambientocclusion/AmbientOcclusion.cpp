@@ -135,6 +135,10 @@ void AmbientOcclusion::onInitialize()
     buffer << t.rdbuf();
     NamedString::create("/lights", buffer.str());
 
+    t = std::ifstream("data/ambientocclusion/utility.glsl");
+    buffer << t.rdbuf();
+    NamedString::create("/utility", buffer.str());
+
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
 

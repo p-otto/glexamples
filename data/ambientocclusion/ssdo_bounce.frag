@@ -1,5 +1,6 @@
 #version 150 core
 #extension GL_ARB_explicit_attrib_location : require
+#extension GL_ARB_shading_language_include : require
 
 in vec2 v_uv;
 in vec3 v_viewRay;
@@ -24,36 +25,16 @@ layout(location = 0) out vec3 color;
 
 const float color_bleeding_strength = 3.0;
 
-mat3 calcRotatedTbn(vec3 normal)
-{
-    vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
-    vec3 rvec = texture(u_rotation, v_uv * noise_scale).xyz;
-    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
-    vec3 bitangent = cross(normal, tangent);
-    return mat3(tangent, bitangent, normal);
-}
-
-mat3 calcTbn(vec3 normal)
-{
-    vec3 rvec = vec3(0, 1, 0);
-    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
-    vec3 bitangent = cross(normal, tangent);
-    return mat3(tangent, bitangent, normal);
-}
-
-vec3 calcPosition(float depth)
-{
-    return v_viewRay * depth;
-}
+#include "/utility"
 
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a;
-    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - 1.0;
+    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
     normal = normalize(normal);
 
-    vec3 position = calcPosition(depth);
-    mat3 tbn = calcRotatedTbn(normal);
+    vec3 position = calcPosition(v_viewRay, depth);
+    mat3 tbn = calcRotatedTbn(u_rotation, normal, v_uv, u_resolutionX, u_resolutionY);
 
     vec3 color_bleeding = vec3(0.0);
     for (int i = 0; i < u_kernelSize; ++i)
