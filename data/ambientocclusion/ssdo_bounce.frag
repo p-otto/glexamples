@@ -26,7 +26,7 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
-const float color_bleeding_strength = 1.0;
+const float color_bleeding_strength = 10.0;
 
 #include "/utility"
 
@@ -79,10 +79,8 @@ void main()
         vec3 diffuse = texture(u_diffuse, ndc_sample_point.xy).rgb;
         vec3 direct_light = texture(u_direct_light, ndc_sample_point.xy).rgb;
 
-        vec3 cur_color_bleeding = color_bleeding_strength * evaluatePhong(vec3(0.0), diffuse, direct_light) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
-        //vec3 cur_color_bleeding = color_bleeding_strength * vec3(1.0, 0.0, 0.0) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
+        vec3 cur_color_bleeding = color_bleeding_strength * evaluatePhong(ambient, diffuse, direct_light) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
         color_bleeding += clamp(cur_color_bleeding, 0.0, 1.0);
-        //color_bleeding += color_bleeding_strength * vec3(1.0, 0.0, 0.0) * sender_transmittance_cos * receiver_transmittance_cos;
     }
 
     color_bleeding /= u_kernelSize;
