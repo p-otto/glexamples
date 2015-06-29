@@ -11,7 +11,6 @@ uniform float u_nearPlane;
 uniform float u_farPlane;
 uniform vec3 u_color;
 
-
 layout(location = 0) out vec3 ambientColor;
 layout(location = 1) out vec3 diffuseColor;
 layout(location = 2) out vec4 normal_depth;

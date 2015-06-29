@@ -11,6 +11,7 @@ out vec3 v_worldNormal;
 
 uniform mat4 u_mvp;
 uniform mat4 u_modelView;
+uniform mat4 u_model;
 
 void main()
 {
@@ -20,6 +21,6 @@ void main()
     v_depth = view_pos.z;
     gl_Position = u_mvp * vec4(a_vertex, 1.0);
 
-    v_worldPos = a_vertex;
-    v_worldNormal = normalize(a_normal);
+    v_worldPos = (u_model * vec4(a_vertex, 1.0)).xyz;
+    v_worldNormal = normalize((u_model * vec4(a_normal, 0.0)).xyz);
 }

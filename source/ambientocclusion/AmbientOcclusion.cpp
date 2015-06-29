@@ -207,6 +207,7 @@ void AmbientOcclusion::drawGeometry()
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,
+        "u_model", model,
         "u_farPlane", m_projectionCapability->zFar(),
         "u_nearPlane", m_projectionCapability->zNear()
     );
