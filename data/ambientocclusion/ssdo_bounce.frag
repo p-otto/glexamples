@@ -26,7 +26,7 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
-const float color_bleeding_strength = 10.0;
+const float color_bleeding_strength = 1.0;
 
 #include "/utility"
 
@@ -82,8 +82,6 @@ void main()
         vec3 cur_color_bleeding = color_bleeding_strength * evaluatePhong(ambient, diffuse, direct_light) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
         color_bleeding += clamp(cur_color_bleeding, 0.0, 1.0);
     }
-
-    color_bleeding /= u_kernelSize;
 
     if (depth > 0.99)
     {
