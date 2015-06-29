@@ -58,11 +58,13 @@ void main()
         float linear_comp_depth = -view_sample_point.z;
 
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
+        float range_check = abs(linear_comp_depth - linear_sample_depth) < u_kernelRadius ? 1.0 : 0.0;
 
         // direct lighting can be calculated from an environment map, point light, etc.
         // here, a environment map is simulated by using the up vector as the maximal ambient light
         vec3 position_to_sample = normalize(view_sample_point - position);
-        occlusion += ambient_color * (1.0 - occluded) * clamp(dot(position_to_sample, vec3(0.0, 1.0, 0.0)) + 1.0, 0.0, 1.0);
+        float is_illuminated = clamp((1.0 - occluded) + (1.0 - range_check), 0.0, 1.0);
+        occlusion += ambient_color * is_illuminated * clamp(dot(position_to_sample, vec3(0.0, 1.0, 0.0)) + 1.0, 0.0, 1.0);
     }
 
     occlusion /= u_kernelSize;

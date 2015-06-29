@@ -79,9 +79,10 @@ void main()
         vec3 diffuse = texture(u_diffuse, ndc_sample_point.xy).rgb;
         vec3 direct_light = texture(u_direct_light, ndc_sample_point.xy).rgb;
 
-        vec3 cur_color_bleeding = color_bleeding_strength * evaluatePhong(ambient, diffuse, direct_light) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
-        color_bleeding += clamp(cur_color_bleeding, 0.0, 1.0);
+        color_bleeding += color_bleeding_strength * evaluatePhong(ambient, diffuse, direct_light) * occluded * u_kernelRadius * sender_transmittance_cos * receiver_transmittance_cos;
     }
+
+    color_bleeding /= u_kernelSize;
 
     if (depth > 0.99)
     {
