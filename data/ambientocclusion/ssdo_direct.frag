@@ -12,6 +12,7 @@ uniform sampler2D u_rotation;
 uniform mat4 u_proj;
 uniform mat4 u_view;
 uniform float u_farPlane;
+uniform float u_nearPlane;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform float u_kernelRadius;
@@ -53,8 +54,8 @@ void main()
             continue;
         }
 
-        // transform both depths to [0, u_farPlane]
-        float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
+        // transform both depths to [u_nearPlane, u_farPlane]
+        float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * (u_farPlane - u_nearPlane) + u_nearPlane;
         float linear_comp_depth = -view_sample_point.z;
 
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;

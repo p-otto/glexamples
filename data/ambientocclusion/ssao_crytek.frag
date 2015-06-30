@@ -10,6 +10,7 @@ uniform sampler2D u_normal_depth;
 uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
+uniform float u_nearPlane;
 uniform float u_farPlane;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
@@ -50,8 +51,8 @@ void main()
             continue;
         }
 
-        // transform both depths to [0, u_farPlane]
-        float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
+        // transform both depths to [u_nearPlane, u_farPlane]
+        float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * (u_farPlane - u_nearPlane) + u_nearPlane;
         float linear_comp_depth = -view_sample_point.z;
 
         // use 0.5 if check fails, because crytek ssao is gray on average due to sphere sampling

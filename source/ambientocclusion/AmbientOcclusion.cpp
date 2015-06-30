@@ -238,6 +238,7 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
         "u_invProj", glm::inverse(m_projectionCapability->projection()),
         "u_proj", m_projectionCapability->projection(),
         "u_view", m_cameraCapability->view(),
+        "u_nearPlane", m_projectionCapability->zNear(),
         "u_farPlane", m_projectionCapability->zFar(),
         "u_resolutionX", m_viewportCapability->width(),
         "u_resolutionY", m_viewportCapability->height(),

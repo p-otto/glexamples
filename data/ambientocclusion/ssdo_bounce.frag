@@ -14,6 +14,7 @@ uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
 uniform mat4 u_invProj;
+uniform float u_nearPlane;
 uniform float u_farPlane;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
@@ -56,8 +57,8 @@ void main()
             continue;
         }
 
-        // transform both depths to [0, u_farPlane]
-        float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * u_farPlane;
+        // transform both depths to [u_nearPlane, u_farPlane]
+        float linear_sample_depth = texture(u_normal_depth, ndc_sample_point.xy).a * (u_farPlane - u_nearPlane) + u_nearPlane;
         float linear_comp_depth = -view_sample_point.z;
 
         float occluded = linear_comp_depth > linear_sample_depth ? 1.0 : 0.0;
@@ -73,13 +74,15 @@ void main()
         float sender_transmittance_cos = max(0.0, dot(sender_normal, transmittance_direction));
         float receiver_transmittance_cos = max(0.0, dot(normal, -transmittance_direction));
         // TODO: factor in attenuation
-        //float dist = abs(linear_comp_depth - linear_sample_depth);
+        float dist = abs(linear_comp_depth - linear_sample_depth);
 
         vec3 ambient = texture(u_ambient, ndc_sample_point.xy).rgb;
         vec3 diffuse = texture(u_diffuse, ndc_sample_point.xy).rgb;
         vec3 direct_light = texture(u_direct_light, ndc_sample_point.xy).rgb;
 
-        color_bleeding += color_bleeding_strength * evaluatePhong(ambient, diffuse, direct_light) * occluded * u_kernelRadius * sender_transmittance_cos * receiver_transmittance_cos;
+        vec3 cur_color_bleeding = color_bleeding_strength * evaluatePhong(ambient, diffuse, direct_light) * (u_kernelRadius * u_kernelRadius) * occluded * sender_transmittance_cos * receiver_transmittance_cos;
+        cur_color_bleeding /= max(1.0, dist * dist);
+        color_bleeding += clamp(cur_color_bleeding, 0.0, 1.0);
     }
 
     color_bleeding /= u_kernelSize;
