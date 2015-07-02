@@ -3,10 +3,10 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-namespace AmbientOcclusionKernel {
-    enum Type { SphereKernel, HemisphereKernel };
+namespace Kernel {
+    enum class KernelType { Sphere, Hemisphere };
+    enum class LengthDistribution { Linear, Quadratic, Starcraft };
+    enum class SurfaceDistribution { Random, Uniform };
 
-    std::vector<glm::vec3> uniformKernel(Type type);
-    std::vector<glm::vec3> quadraticKernel(Type type);
-    std::vector<glm::vec3> starcraftKernel(Type type);
+    std::vector<glm::vec3> getKernel(int size, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution);
 }
