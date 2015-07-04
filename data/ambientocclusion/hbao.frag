@@ -29,11 +29,11 @@ vec2 snapToGrid(vec2 offset)
 	return round(offset * vec2(u_resolutionX, u_resolutionY)) / vec2(u_resolutionX, u_resolutionY);
 }
 
-float findHorizonAngle(vec2 offset, int numSamples, float depth)
+float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float depth)
 {
 	float largestHorizonAngle = 0.0;
 	for (int step = 1; step < numSamples; step++) {
-		vec2 sampleOffset = offset * step;
+		vec2 sampleOffset = startOffset + offset * step;
 		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
 		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
 
@@ -70,17 +70,18 @@ void main()
     float stepSize = u_kernelRadius / NUM_SAMPLES;
 
     vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
-    vec2 rvec = texture(u_rotation, v_uv * noise_scale).xy;
+    vec3 random = texture(u_rotation, v_uv * noise_scale).xyz;
 
     for (int i = 0; i < NUM_DIRECTIONS; i++) {
     	float angle = i * (2 * pi / NUM_DIRECTIONS);
-    	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), rvec);
+    	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), random.xy);
     	sampleDirection = normalize(sampleDirection);
     	vec4 scaledDirection = u_proj * vec4(sampleDirection * stepSize, 0.0, 0.0);
-    	vec2 offset = snapToGrid(scaledDirection.xy);
+    	vec2 startOffset = snapToGrid(scaledDirection.xy * random.z);
+    	vec2 offset = scaledDirection.xy;
 
     	float tangentAngle = findTangentAngle(offset, dx, dy);
-    	float horizonAngle = findHorizonAngle(offset, NUM_SAMPLES, depth);
+    	float horizonAngle = findHorizonAngle(startOffset, offset, NUM_SAMPLES, depth);
     	
     	ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
     }
