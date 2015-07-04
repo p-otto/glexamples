@@ -42,6 +42,14 @@ float findHorizonAngle(vec2 offset, int numSamples, float depth)
 	return largestHorizonAngle;
 }
 
+float findTangentAngle(vec2 offset, vec3 dx, vec3 dy)
+{
+	vec3 T = offset.x * dx + offset.y * dy;
+	float tangentAngle = atan(T.z / length(T.xy));
+
+	return tangentAngle;
+}
+
 vec2 rotate(vec2 direction, vec2 rand) {
 	return vec2(direction.x*rand.x - direction.y*rand.y,
                   direction.x*rand.y + direction.y*rand.x);
@@ -54,6 +62,9 @@ void main()
     normal = normalize(normal);
 
     vec3 position = calcPosition(depth);
+
+    vec3 dx = dFdx(position);
+    vec3 dy = dFdy(position);
 
     float ambientOcclusion = 0.0;
     float stepSize = u_kernelRadius / NUM_SAMPLES;
@@ -68,7 +79,7 @@ void main()
     	vec4 scaledDirection = u_proj * vec4(sampleDirection * stepSize, 0.0, 0.0);
     	vec2 offset = snapToGrid(scaledDirection.xy);
 
-    	float tangentAngle = 0.0;
+    	float tangentAngle = findTangentAngle(offset, dx, dy);
     	float horizonAngle = findHorizonAngle(offset, NUM_SAMPLES, depth);
     	
     	ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
