@@ -8,15 +8,12 @@ uniform sampler2D u_normal_depth;
 #define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
-uniform int u_kernelSize;
 uniform float u_kernelRadius;
 uniform mat4 u_proj;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
+#define NUM_DIRECTIONS 6
 #define NUM_SAMPLES 5
-
-#define MAX_KERNEL_SIZE 128
-uniform float kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 occlusion;
 
@@ -64,8 +61,9 @@ void main()
     vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
     vec2 rvec = texture(u_rotation, v_uv * noise_scale).xy;
 
-    for (int i = 0; i < u_kernelSize; i++) {
-    	vec2 sampleDirection = rotate(vec2(sin(kernel[i]), cos(kernel[i])), rvec);
+    for (int i = 0; i < NUM_DIRECTIONS; i++) {
+    	float angle = i * (2 * pi / NUM_DIRECTIONS);
+    	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), rvec);
     	sampleDirection = normalize(sampleDirection);
     	vec4 scaledDirection = u_proj * vec4(sampleDirection * stepSize, 0.0, 0.0);
     	vec2 offset = snapToGrid(scaledDirection.xy);
@@ -75,7 +73,7 @@ void main()
     	
     	ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
     }
-    ambientOcclusion /= u_kernelSize;
+    ambientOcclusion /= NUM_DIRECTIONS;
 
     occlusion = vec3(ambientOcclusion);
 }
