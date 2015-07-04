@@ -34,9 +34,20 @@ std::vector<glm::vec3> HBAO::getKernel(int size)
     return {};
 }
 
-std::vector<glm::vec3> HBAO::getNoiseTexture(int size)
-{
-    return {};
+std::vector<glm::vec3> HBAO::getNoiseTexture(int size) {
+    std::vector<glm::vec3> tex(size * size);
+
+    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+
+    for (auto &vec : tex) {
+        vec[0] = distribution(m_randEngine);
+        vec[1] = distribution(m_randEngine);
+        vec[2] = 0.0f;
+
+        vec = glm::normalize(vec);
+    }
+
+    return tex;
 }
 
 void HBAO::process(globjects::Texture *normalsDepth, globjects::Texture * color) {
