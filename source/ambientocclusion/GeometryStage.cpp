@@ -32,16 +32,10 @@ GeometryStage::GeometryStage(const AmbientOcclusionOptions * options)
 void GeometryStage::initialize(const gloperate::Scene * scene)
 {
     // Shader
-    m_modelProgram = new Program{};
-    m_modelProgram->attach(
-        Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/model.frag")
-    );
-
     m_phongProgram = new Program{};
     m_phongProgram->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/model.vert"),
-        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag")
+        Shader::fromFile(GL_FRAGMENT_SHADER, "data/ambientocclusion/phong.frag", { "/lights" })
     );
 
     // Model
@@ -53,52 +47,68 @@ void GeometryStage::initialize(const gloperate::Scene * scene)
     m_plane = gloperate::make_unique<Plane>();
 
     // Framebuffer
-    m_colorAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    m_ambientAttachment = Texture::createDefault(GL_TEXTURE_2D);
+    m_diffuseAttachment = Texture::createDefault(GL_TEXTURE_2D);
     m_normalDepthAttachment = Texture::createDefault(GL_TEXTURE_2D);
     m_depthBuffer = Texture::createDefault(GL_TEXTURE_2D);
 
     m_modelFbo = make_ref<Framebuffer>();
-    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_colorAttachment);
-    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT1, m_normalDepthAttachment);
+    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT0, m_ambientAttachment);
+    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT1, m_diffuseAttachment);
+    m_modelFbo->attachTexture(GL_COLOR_ATTACHMENT2, m_normalDepthAttachment);
     m_modelFbo->attachTexture(GL_DEPTH_ATTACHMENT, m_depthBuffer);
-    m_modelFbo->setDrawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
+    m_modelFbo->setDrawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
 }
 
 void GeometryStage::updateFramebuffer(const int width, const int height)
 {
-    m_colorAttachment->image2D(0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    m_ambientAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    m_diffuseAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     m_normalDepthAttachment->image2D(0, GL_RGBA16, width, height, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
     m_depthBuffer->image2D(0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
 }
 
 void GeometryStage::process()
 {
-    auto program = m_occlusionOptions->phong() ? m_phongProgram : m_modelProgram;
+    m_modelFbo->bind(GL_FRAMEBUFFER);
+    m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{ 0.85f, 0.87f, 0.91f, 1.0f });
+    m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-    program->use();
+    glm::ivec3 color{21, 243, 103};
 
-    m_uniformGroup->addToProgram(program);
+    m_phongProgram->use();
+
+    m_uniformGroup->addToProgram(m_phongProgram);
 
     m_plane->draw();
     for (auto & drawable : m_drawables)
     {
+        if (m_occlusionOptions->color()) {
+            m_phongProgram->setUniform("u_color", glm::vec3(color) / 256.0f);
+        }
+        else {
+            m_phongProgram->setUniform("u_color", glm::vec3(1.0));
+        }
         drawable.draw();
+
+        color = glm::vec3((color.r + 68) % 256,
+                          (color.g + 64) % 256,
+                          (color.b + 99) % 256
+        );
     }
 
-    program->release();
+    m_phongProgram->release();
 }
 
-void GeometryStage::bindAndClearFbo()
+globjects::Texture * GeometryStage::getAmbientTexture()
 {
-    m_modelFbo->bind(GL_FRAMEBUFFER);
-    m_modelFbo->clearBuffer(GL_COLOR, 0, glm::vec4{0.85f, 0.87f, 0.91f, 1.0f});
-    m_modelFbo->clearBuffer(GL_COLOR, 1, glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
-    m_modelFbo->clearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+    return m_ambientAttachment;
 }
 
-globjects::Texture * GeometryStage::getColorTexture()
+globjects::Texture * GeometryStage::getDiffuseTexture()
 {
-    return m_colorAttachment;
+    return m_diffuseAttachment;
 }
 
 globjects::Texture * GeometryStage::getNormalDepthTexture()

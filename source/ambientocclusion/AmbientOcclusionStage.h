@@ -32,7 +32,7 @@ public:
     virtual ~AmbientOcclusionStage() = default;
 
     void initialize();
-    virtual void process(globjects::Texture * normalsDepth, globjects::Texture * color);
+    virtual void process(globjects::Texture * normalsDepth, std::vector<globjects::Texture*> colors);
 
     globjects::Texture * getOcclusionTexture();
     gloperate::UniformGroup * getUniformGroup();

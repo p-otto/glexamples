@@ -92,7 +92,7 @@ std::vector<glm::vec3> SSDO::getNoiseTexture(int size)
     return tex;
 }
 
-void SSDO::process(globjects::Texture * normalsDepth, globjects::Texture * color)
+void SSDO::process(globjects::Texture * normalsDepth, std::vector<globjects::Texture*> colors)
 {
     // first pass: direct lighting
     m_screenAlignedQuad->setProgram(m_directLightingShader);
@@ -103,7 +103,6 @@ void SSDO::process(globjects::Texture * normalsDepth, globjects::Texture * color
     m_screenAlignedQuad->setTextures({
         { "u_normal_depth", normalsDepth },
         { "u_rotation", m_rotationTex },
-        { "u_color", color }
     });
 
     m_uniformGroup->addToProgram(m_screenAlignedQuad->program());
@@ -126,7 +125,9 @@ void SSDO::process(globjects::Texture * normalsDepth, globjects::Texture * color
     m_screenAlignedQuad->setTextures({
         { "u_normal_depth", normalsDepth },
         { "u_rotation", m_rotationTex },
-        { "u_direct_light", m_firstPassAttachment }
+        { "u_direct_light", m_firstPassAttachment },
+        { "u_ambient", colors.at(0) },
+        { "u_diffuse", colors.at(1) }
     });
 
     glProgramUniform3fv(

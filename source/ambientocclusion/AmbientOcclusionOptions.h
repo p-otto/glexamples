@@ -14,10 +14,8 @@ public:
     
     AmbientOcclusionType ambientOcclusion() const;
     void setAmbientOcclusion(AmbientOcclusionType ambientOcclusion);
-    
-    bool phong() const;
-    void setPhong(bool phong);
-    
+
+    // kernel settings
     int maxKernelSize() const;
     
     int kernelSize() const;
@@ -34,7 +32,14 @@ public:
 
     bool biliteralBlurring() const;
     void setBiliteralBlurring(bool biliteralBlurring);
-    
+
+    // phong settings
+    float ambient() const;
+    void setAmbient(float ambient);
+
+    bool color() const;
+    void setColor(bool color);
+
     // TODO: implement setters and (if necessary update AmbientOcclusion)
     int rotationTexSize() const;
     float minimalKernelLength() const;
@@ -49,14 +54,15 @@ private:
     static const int s_maxKernelSize = 128;
     
     AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::ScreenSpaceHemisphere;
-    bool m_phong = false;
     
     int m_kernelSize = 32;
     int m_blurKernelSize = 7;
     float m_kernelRadius = 7.0f;
-    bool m_attenuation = true;
     bool m_halfResolution = true;
     bool m_biliteralBlurring = true;
+
+    float m_ambientTerm = 0.8f;
+    bool m_color = false;
     
     int m_rotationTexSize = 4;
     float m_minimalKernelLength = 0.1f;

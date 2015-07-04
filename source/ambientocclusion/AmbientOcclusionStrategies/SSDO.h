@@ -8,7 +8,7 @@ public:
     SSDO(const AmbientOcclusionOptions * options);
     virtual ~SSDO() = default;
 
-    virtual void process(globjects::Texture * normalsDepth, globjects::Texture * color);
+    virtual void process(globjects::Texture * normalsDepth, std::vector<globjects::Texture*> colors);
 
 protected:
     virtual std::vector<glm::vec3> getKernel(int size) override;

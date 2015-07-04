@@ -31,9 +31,8 @@ public:
     void initialize(const gloperate::Scene * scene);
     void process();
 
-    void bindAndClearFbo();
-
-    globjects::Texture * getColorTexture();
+    globjects::Texture * getAmbientTexture();
+    globjects::Texture * getDiffuseTexture();
     globjects::Texture * getNormalDepthTexture();
     globjects::Texture * getDepthBuffer();
 
@@ -45,11 +44,11 @@ private:
     const AmbientOcclusionOptions * m_occlusionOptions;
 
     globjects::ref_ptr<globjects::Framebuffer> m_modelFbo;
-    globjects::ref_ptr<globjects::Texture> m_colorAttachment;
+    globjects::ref_ptr<globjects::Texture> m_ambientAttachment;
+    globjects::ref_ptr<globjects::Texture> m_diffuseAttachment;
     globjects::ref_ptr<globjects::Texture> m_normalDepthAttachment;
     globjects::ref_ptr<globjects::Texture> m_depthBuffer;
 
-    globjects::ref_ptr<globjects::Program> m_modelProgram;
     globjects::ref_ptr<globjects::Program> m_phongProgram;
 
     std::vector<gloperate::PolygonalDrawable> m_drawables;

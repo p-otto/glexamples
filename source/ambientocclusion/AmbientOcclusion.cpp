@@ -16,6 +16,7 @@
 #include "AmbientOcclusionStrategies/SSDO.h"
 
 #include <chrono>
+#include <fstream>
 
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,6 +32,7 @@
 #include <globjects/Program.h>
 #include <globjects/Texture.h>
 #include <globjects/Framebuffer.h>
+#include <globjects/NamedString.h>
 
 #include <gloperate/base/RenderTargetType.h>
 
@@ -132,7 +134,14 @@ void AmbientOcclusion::onInitialize()
 
     glClearColor(0.85f, 0.87f, 0.91f, 1.0f);
 
-    m_screenAlignedQuad = gloperate::make_unique<ScreenAlignedQuadRenderer>();
+    std::ifstream t("data/ambientocclusion/lights.glsl");
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    NamedString::create("/lights", buffer.str());
+
+    t = std::ifstream("data/ambientocclusion/utility.glsl");
+    buffer << t.rdbuf();
+    NamedString::create("/utility", buffer.str());
 
     m_grid = make_ref<gloperate::AdaptiveGrid>();
     m_grid->setColor({0.6f, 0.6f, 0.6f});
@@ -195,14 +204,16 @@ void AmbientOcclusion::drawGeometry()
     glEnable(GL_CULL_FACE);
 
     glm::mat4 model{};
-    model = glm::translate(model, glm::vec3(-20, 60, 20));
+    model = glm::translate(model, glm::vec3(20, 0, 0));
     model = glm::scale(model, glm::vec3(0.1f));
+    model = glm::rotate(model, 3.14f, glm::vec3(0, 0, 1));
     model = glm::rotate(model, 3.14f / 2.0f, glm::vec3(1, 0, 0));
-    //model = glm::translate(model, glm::vec3(-120, 0, -500));
     setUniforms(*m_geometryStage->getUniformGroup(),
         "u_mvp", m_projectionCapability->projection() * m_cameraCapability->view() * model,
         "u_modelView", m_cameraCapability->view() * model,
-        "u_farPlane", m_projectionCapability->zFar()
+        "u_model", model,
+        "u_farPlane", m_projectionCapability->zFar(),
+        "u_nearPlane", m_projectionCapability->zNear()
     );
     m_geometryStage->process();
 
@@ -213,35 +224,41 @@ void AmbientOcclusion::drawGeometry()
 void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
 {
     // draw geometry to texture
-    m_geometryStage->bindAndClearFbo();
     drawGeometry();
 
     glDisable(GL_DEPTH_TEST);
+
+    int width = m_viewportCapability->width();
+    int height = m_viewportCapability->height();
     
     // calculate ambient occlusion
     if (m_occlusionOptions->halfResolution())
     {
+        width /= 2;
+        height /= 2;
         glViewport(
             m_viewportCapability->x(),
             m_viewportCapability->y(),
-            m_viewportCapability->width() / 2,
-            m_viewportCapability->height() / 2);
+            width,
+            height);
     }
 
     setUniforms(*m_ambientOcclusionStage->getUniformGroup(),
         "u_invProj", glm::inverse(m_projectionCapability->projection()),
         "u_proj", m_projectionCapability->projection(),
         "u_view", m_cameraCapability->view(),
+        "u_nearPlane", m_projectionCapability->zNear(),
         "u_farPlane", m_projectionCapability->zFar(),
-        "u_resolutionX", m_viewportCapability->width(),
-        "u_resolutionY", m_viewportCapability->height(),
+        "u_resolutionX", width,
+        "u_resolutionY", height,
         "u_kernelSize", m_occlusionOptions->kernelSize(),
         "u_kernelRadius", m_occlusionOptions->kernelRadius()
     );
-    auto colorTexture = m_geometryStage->getColorTexture();
+    auto ambientTexture = m_geometryStage->getAmbientTexture();
+    auto diffuseTexture = m_geometryStage->getDiffuseTexture();
     auto normalDepthTexture = m_geometryStage->getNormalDepthTexture();
 
-    m_ambientOcclusionStage->process(normalDepthTexture, colorTexture);
+    m_ambientOcclusionStage->process(normalDepthTexture, { ambientTexture, diffuseTexture });
 
     // blur ambient occlusion texture
     glViewport(
@@ -267,5 +284,5 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
 
     auto blurTexture = m_blurStage->getBlurredTexture();
     auto depthBuffer = m_geometryStage->getDepthBuffer();
-    m_mixStage->process(colorTexture, blurTexture, normalDepthTexture, depthBuffer);
+    m_mixStage->process(ambientTexture, diffuseTexture, blurTexture, normalDepthTexture, depthBuffer);
 }
