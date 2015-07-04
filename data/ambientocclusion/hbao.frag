@@ -45,6 +45,11 @@ float findHorizonAngle(vec2 offset, int numSamples, float depth)
 	return largestHorizonAngle;
 }
 
+vec2 rotate(vec2 direction, vec2 rand) {
+	return vec2(direction.x*rand.x - direction.y*rand.y,
+                  direction.x*rand.y + direction.y*rand.x);
+}
+
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a;
@@ -56,8 +61,12 @@ void main()
     float ambientOcclusion = 0.0;
     float stepSize = u_kernelRadius / NUM_SAMPLES;
 
+    vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
+    vec2 rvec = texture(u_rotation, v_uv * noise_scale).xy;
+
     for (int i = 0; i < u_kernelSize; i++) {
-    	vec2 sampleDirection = vec2(sin(kernel[i]), cos(kernel[i]));
+    	vec2 sampleDirection = rotate(vec2(sin(kernel[i]), cos(kernel[i])), rvec);
+    	sampleDirection = normalize(sampleDirection);
     	vec4 scaledDirection = u_proj * vec4(sampleDirection * stepSize, 0.0, 0.0);
     	vec2 offset = snapToGrid(scaledDirection.xy);
 

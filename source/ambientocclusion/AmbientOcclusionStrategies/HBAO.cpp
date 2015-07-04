@@ -14,7 +14,6 @@
 #include <gloperate/primitives/UniformGroup.h>
 #include <gloperate/base/make_unique.hpp>
 
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/constants.hpp>
 
 using namespace gl;
