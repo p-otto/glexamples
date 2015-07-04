@@ -223,15 +223,20 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
     drawGeometry();
 
     glDisable(GL_DEPTH_TEST);
+
+    int width = m_viewportCapability->width();
+    int height = m_viewportCapability->height();
     
     // calculate ambient occlusion
     if (m_occlusionOptions->halfResolution())
     {
+        width /= 2;
+        height /= 2;
         glViewport(
             m_viewportCapability->x(),
             m_viewportCapability->y(),
-            m_viewportCapability->width() / 2,
-            m_viewportCapability->height() / 2);
+            width,
+            height);
     }
 
     setUniforms(*m_ambientOcclusionStage->getUniformGroup(),
@@ -240,8 +245,8 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
         "u_view", m_cameraCapability->view(),
         "u_nearPlane", m_projectionCapability->zNear(),
         "u_farPlane", m_projectionCapability->zFar(),
-        "u_resolutionX", m_viewportCapability->width(),
-        "u_resolutionY", m_viewportCapability->height(),
+        "u_resolutionX", width,
+        "u_resolutionY", height,
         "u_kernelSize", m_occlusionOptions->kernelSize(),
         "u_kernelRadius", m_occlusionOptions->kernelRadius()
     );
