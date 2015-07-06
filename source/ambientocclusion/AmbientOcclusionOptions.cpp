@@ -1,6 +1,7 @@
 #include "AmbientOcclusionOptions.h"
 
 #include "AmbientOcclusion.h"
+#include <Kernel.h>
 
 AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 : m_painter(painter)
@@ -10,10 +11,11 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::setAmbientOcclusion);
 
     aoOption->setChoices({
-        None, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased
+        None, SSAO,ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased
     });
     aoOption->setStrings({
         { None, "None" },
+		{ SSAO, "SSAO" },
         { ScreenSpaceSphere, "SSAO_Sphere" },
         { ScreenSpaceHemisphere, "SSAO_Hemisphere" },
         { ScreenSpaceDirectional, "SSDO" },
@@ -55,6 +57,37 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     ao_group->addProperty<bool>("half_resolution", this,
         &AmbientOcclusionOptions::halfResolution,
         &AmbientOcclusionOptions::setHalfResolution);
+
+	auto kernelTypeOption = ao_group->addProperty<Kernel::KernelType>("Kernel Type", this,
+		&AmbientOcclusionOptions::kernelType,
+		&AmbientOcclusionOptions::setKernelType);
+
+	kernelTypeOption->setChoices({ Kernel::KernelType::Sphere, Kernel::KernelType::Hemisphere });
+	kernelTypeOption->setStrings({
+		{ Kernel::KernelType::Sphere, "Sphere" },
+		{ Kernel::KernelType::Hemisphere, "Hemisphere" }
+	});
+
+	auto lengthDistributionOption = ao_group->addProperty<Kernel::LengthDistribution>("Length Distribution", this,
+		&AmbientOcclusionOptions::lengthDistribution,
+		&AmbientOcclusionOptions::setLengthDistribution);
+
+	lengthDistributionOption->setChoices({ Kernel::LengthDistribution::Linear, Kernel::LengthDistribution::Quadratic, Kernel::LengthDistribution::Starcraft });
+	lengthDistributionOption->setStrings({
+		{ Kernel::LengthDistribution::Linear, "Linear" },
+		{ Kernel::LengthDistribution::Quadratic, "Quadratic" },
+		{ Kernel::LengthDistribution::Starcraft, "Starcraft" }
+	});
+
+	auto surfaceDistributionOption = ao_group->addProperty<Kernel::SurfaceDistribution>("Surface Distribution", this,
+		&AmbientOcclusionOptions::surfaceDistribution,
+		&AmbientOcclusionOptions::setSurfaceDistribution);
+
+	surfaceDistributionOption->setChoices({ Kernel::SurfaceDistribution::Random, Kernel::SurfaceDistribution::Uniform });
+	surfaceDistributionOption->setStrings({
+		{ Kernel::SurfaceDistribution::Random, "Random" },
+		{ Kernel::SurfaceDistribution::Uniform, "Uniform" }
+	});
 
     blur_group->addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
@@ -122,6 +155,33 @@ void AmbientOcclusionOptions::setHalfResolution(bool halfResolution) {
     m_resolutionChanged = true;
 }
 
+Kernel::KernelType AmbientOcclusionOptions::kernelType() const {
+	return m_kernelType;
+}
+
+void AmbientOcclusionOptions::setKernelType(Kernel::KernelType type) {
+	m_kernelType = type;
+	m_kernelChanged = true;
+}
+
+Kernel::LengthDistribution AmbientOcclusionOptions::lengthDistribution() const {
+	return m_lengthDistribution;
+}
+
+void AmbientOcclusionOptions::setLengthDistribution(Kernel::LengthDistribution length) {
+	m_lengthDistribution = length;
+	m_kernelChanged = true;
+}
+
+Kernel::SurfaceDistribution AmbientOcclusionOptions::surfaceDistribution() const {
+	return m_surfaceDistribution;
+}
+
+void AmbientOcclusionOptions::setSurfaceDistribution(Kernel::SurfaceDistribution surface) {
+	m_surfaceDistribution = surface;
+	m_kernelChanged = true;
+}
+
 bool AmbientOcclusionOptions::biliteralBlurring() const
 {
     return m_biliteralBlurring;
@@ -184,4 +244,12 @@ bool AmbientOcclusionOptions::hasAmbientOcclusionTypeChanged()
         return true;
     }
     return false;
+}
+
+bool AmbientOcclusionOptions::hasKernelChanged() {
+	if (m_kernelChanged) {
+		m_kernelChanged = false;
+		return true;
+	}
+	return false;
 }

@@ -1,8 +1,9 @@
 #pragma once
+#include <Kernel.h>
 
 class AmbientOcclusion;
 
-enum AmbientOcclusionType { None, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased };
+enum AmbientOcclusionType { None, SSAO, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased };
 
 class AmbientOcclusionOptions
 {
@@ -21,14 +22,25 @@ public:
     int kernelSize() const;
     void setKernelSize(int kernelSize);
     
-    int blurKernelSize() const;
-    void setblurKernelSize(int blurKernelSize);
-    
     float kernelRadius() const;
     void setKernelRadius(float kernelRadius);
 
     bool halfResolution() const;
     void setHalfResolution(bool halfResolution);
+
+	Kernel::KernelType kernelType() const;
+	void setKernelType(Kernel::KernelType type);
+
+	Kernel::LengthDistribution lengthDistribution() const;
+	void setLengthDistribution(Kernel::LengthDistribution type);
+
+	Kernel::SurfaceDistribution surfaceDistribution() const;
+	void setSurfaceDistribution(Kernel::SurfaceDistribution type);
+
+	// blur settings
+
+	int blurKernelSize() const;
+	void setblurKernelSize(int blurKernelSize);
 
     bool biliteralBlurring() const;
     void setBiliteralBlurring(bool biliteralBlurring);
@@ -47,6 +59,7 @@ public:
 
     bool hasResolutionChanged();
     bool hasAmbientOcclusionTypeChanged();
+	bool hasKernelChanged();
     
 private:
     AmbientOcclusion & m_painter;
@@ -70,5 +83,10 @@ private:
 
     bool m_resolutionChanged = false;
     bool m_ambientOcclusionChanged = false;
+	bool m_kernelChanged = false;
+
+	Kernel::KernelType m_kernelType = Kernel::KernelType::Hemisphere;
+	Kernel::LengthDistribution m_lengthDistribution = Kernel::LengthDistribution::Quadratic;
+	Kernel::SurfaceDistribution m_surfaceDistribution = Kernel::SurfaceDistribution::Random;
 	// TODO: Add parameters for Kernel
 };

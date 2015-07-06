@@ -52,6 +52,7 @@ protected:
     virtual void onPaint() override;
 
     void updateAmbientOcclusion();
+	void updateKernel();
 
 protected:    
     /* capabilities */

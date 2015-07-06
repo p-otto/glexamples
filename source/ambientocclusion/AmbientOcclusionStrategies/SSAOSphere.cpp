@@ -23,6 +23,7 @@ using namespace globjects;
 SSAOSphere::SSAOSphere(const AmbientOcclusionOptions * options)
 :   AmbientOcclusionStage(options)
 {
+	//TODO: refactor fragment shaders, make SSAOGeneral only simple SSAO strategy
     m_program = new Program{};
     m_program->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
