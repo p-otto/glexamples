@@ -70,4 +70,5 @@ private:
 
     bool m_resolutionChanged = false;
     bool m_ambientOcclusionChanged = false;
+	// TODO: Add parameters for Kernel
 };

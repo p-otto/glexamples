@@ -1,6 +1,7 @@
 #include "SSAOSphere.h"
 
 #include "ScreenAlignedQuadRenderer.h"
+#include <Kernel.h>
 
 #include <glbinding/gl/enum.h>
 #include <glbinding/gl/bitfield.h>
@@ -31,25 +32,8 @@ SSAOSphere::SSAOSphere(const AmbientOcclusionOptions * options)
 
 std::vector<glm::vec3> SSAOSphere::getKernel(int size)
 {
-    std::vector<glm::vec3> kernel(size);
-    int count = 1;
-
-    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-
-    for (auto &vec : kernel)
-    {
-        vec[0] = distribution(m_randEngine);
-        vec[1] = distribution(m_randEngine);
-        vec[2] = distribution(m_randEngine);
-
-        vec = glm::normalize(vec);
-
-        float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_occlusionOptions->minimalKernelLength(), 1.0f, scale * scale);
-        vec *= scale;
-    }
-
-    return kernel;
+	// erstelle Kernel mit default Sphere optionen
+	return Kernel::getKernel(size, Kernel::KernelType::Sphere, Kernel::LengthDistribution::Quadratic, Kernel::SurfaceDistribution::Random);
 }
 
 std::vector<glm::vec3> SSAOSphere::getNoiseTexture(int size)
