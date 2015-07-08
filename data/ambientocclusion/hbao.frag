@@ -33,7 +33,7 @@ float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float dept
 {
 	float largestHorizonAngle = 0.0;
 	for (int step = 1; step < numSamples; step++) {
-		vec2 sampleOffset = startOffset + offset * step;
+		vec2 sampleOffset = snapToGrid(startOffset + offset * step);
 		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
 		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
 
@@ -76,7 +76,7 @@ void main()
     	float angle = i * (2 * pi / NUM_DIRECTIONS);
     	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), random.xy);
     	sampleDirection = normalize(sampleDirection);
-    	vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * u_kernelRadius, 0.0), 1.0);
+    	vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * stepSize, 0.0), 1.0);
     	
     	scaledDirection /= scaledDirection.w;
     	scaledDirection = scaledDirection * 0.5 + 0.5;
