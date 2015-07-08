@@ -24,7 +24,24 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 
     auto phong_group = m_painter.addGroup("phong");
     auto ao_group = m_painter.addGroup("ssao");
+    auto hbao_group = m_painter.addGroup("hbao");
     auto blur_group = m_painter.addGroup("blurring");
+
+    hbao_group->addProperty<int>("number_of_samples", this,
+        &AmbientOcclusionOptions::numSamples,
+        &AmbientOcclusionOptions::setNumSamples)->setOptions({
+            { "minimum", 0 },
+            { "maximum", 10 },
+            { "step", 1 }
+    });
+
+    hbao_group->addProperty<int>("number_of_directions", this,
+        &AmbientOcclusionOptions::numDirections,
+        &AmbientOcclusionOptions::setNumDirections)->setOptions({
+            { "minimum", 0 },
+            { "maximum", 10 },
+            { "step", 1 }
+    });
 
     phong_group->addProperty<float>("ambient", this,
         &AmbientOcclusionOptions::ambient,
@@ -210,6 +227,22 @@ bool AmbientOcclusionOptions::color() const
 void AmbientOcclusionOptions::setColor(bool color)
 {
     m_color = color;
+}
+
+int AmbientOcclusionOptions::numSamples() const {
+    return m_numSamples;
+}
+
+void AmbientOcclusionOptions::setNumSamples(int numSamples) {
+    m_numSamples = numSamples;
+}
+
+int AmbientOcclusionOptions::numDirections() const {
+    return m_numDirections;
+}
+
+void AmbientOcclusionOptions::setNumDirections(int numDirections) {
+    m_numDirections = numDirections;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const

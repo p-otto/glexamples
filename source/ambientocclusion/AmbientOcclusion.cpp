@@ -264,7 +264,9 @@ void AmbientOcclusion::drawScreenSpaceAmbientOcclusion()
         "u_resolutionX", width,
         "u_resolutionY", height,
         "u_kernelSize", m_occlusionOptions->kernelSize(),
-        "u_kernelRadius", m_occlusionOptions->kernelRadius()
+        "u_kernelRadius", m_occlusionOptions->kernelRadius(),
+        "u_numSamples", m_occlusionOptions->numSamples(),
+        "u_numDirections", m_occlusionOptions->numDirections()
     );
     auto ambientTexture = m_geometryStage->getAmbientTexture();
     auto diffuseTexture = m_geometryStage->getDiffuseTexture();

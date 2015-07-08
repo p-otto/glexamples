@@ -12,8 +12,8 @@ uniform float u_kernelRadius;
 uniform mat4 u_proj;
 uniform int u_resolutionX;
 uniform int u_resolutionY;
-#define NUM_DIRECTIONS 6
-#define NUM_SAMPLES 5
+uniform int u_numDirections;
+uniform int u_numSamples;
 
 layout(location = 0) out vec3 occlusion;
 

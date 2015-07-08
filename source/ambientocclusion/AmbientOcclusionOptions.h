@@ -37,6 +37,13 @@ public:
 	Kernel::SurfaceDistribution surfaceDistribution() const;
 	void setSurfaceDistribution(Kernel::SurfaceDistribution type);
 
+    // hbao settings
+    int numDirections() const;
+    void setNumDirections(int numDirections);
+
+    int numSamples() const;
+    void setNumSamples(int numSamples);
+
 	// blur settings
 
 	int blurKernelSize() const;
@@ -66,7 +73,7 @@ private:
     
     static const int s_maxKernelSize = 128;
     
-    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::ScreenSpaceHemisphere;
+    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::HorizonBased;
     
     int m_kernelSize = 32;
     int m_blurKernelSize = 7;
@@ -74,12 +81,15 @@ private:
     bool m_halfResolution = true;
     bool m_biliteralBlurring = true;
 
-    float m_ambientTerm = 0.8f;
+    float m_ambientTerm = 1.f;
     bool m_color = false;
     
     int m_rotationTexSize = 4;
     float m_minimalKernelLength = 0.1f;
     float m_minimalKernelAngle = 0.1f;
+
+    int m_numSamples = 5;
+    int m_numDirections = 6;
 
     bool m_resolutionChanged = false;
     bool m_ambientOcclusionChanged = false;
