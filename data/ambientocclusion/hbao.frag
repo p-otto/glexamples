@@ -76,7 +76,12 @@ void main()
     	float angle = i * (2 * pi / NUM_DIRECTIONS);
     	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), random.xy);
     	sampleDirection = normalize(sampleDirection);
-    	vec4 scaledDirection = u_proj * vec4(sampleDirection * stepSize, 0.0, 0.0);
+    	vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * u_kernelRadius, 0.0), 1.0);
+    	
+    	scaledDirection /= scaledDirection.w;
+    	scaledDirection = scaledDirection * 0.5 + 0.5;
+
+    	scaledDirection -= vec4(v_uv, 0.0, 0.0);
     	vec2 startOffset = snapToGrid(scaledDirection.xy * random.z);
     	vec2 offset = scaledDirection.xy;
 
