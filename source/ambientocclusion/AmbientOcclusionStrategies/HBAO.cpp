@@ -14,7 +14,6 @@
 #include <gloperate/primitives/UniformGroup.h>
 #include <gloperate/base/make_unique.hpp>
 
-#include <glm/gtc/constants.hpp>
 
 using namespace gl;
 using namespace globjects;
@@ -44,9 +43,10 @@ std::vector<glm::vec3> HBAO::getNoiseTexture(int size) {
     for (auto &vec : tex) {
         vec[0] = circleDistribution(m_randEngine);
         vec[1] = circleDistribution(m_randEngine);
-        vec[2] = distribution(m_randEngine);
+        vec[2] = 0.0f;
 
         vec = glm::normalize(vec);
+        vec[2] = distribution(m_randEngine);
     }
 
     return tex;

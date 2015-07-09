@@ -73,7 +73,7 @@ private:
     
     static const int s_maxKernelSize = 128;
     
-    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::HorizonBased;
+    AmbientOcclusionType m_ambientOcclusion = AmbientOcclusionType::ScreenSpaceHemisphere;
     
     int m_kernelSize = 32;
     int m_blurKernelSize = 7;
