@@ -67,13 +67,13 @@ void main()
     vec3 dy = dFdy(position);
 
     float ambientOcclusion = 0.0;
-    float stepSize = u_kernelRadius / NUM_SAMPLES;
+    float stepSize = u_kernelRadius / u_numSamples;
 
     vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
     vec3 random = texture(u_rotation, v_uv * noise_scale).xyz;
 
-    for (int i = 0; i < NUM_DIRECTIONS; i++) {
-    	float angle = i * (2 * pi / NUM_DIRECTIONS);
+    for (int i = 0; i < u_numDirections; i++) {
+    	float angle = i * (2 * pi / u_numDirections);
     	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), random.xy);
     	sampleDirection = normalize(sampleDirection);
     	vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * stepSize, 0.0), 1.0);
@@ -86,11 +86,11 @@ void main()
     	vec2 offset = scaledDirection.xy;
 
     	float tangentAngle = findTangentAngle(offset, dx, dy);
-    	float horizonAngle = findHorizonAngle(startOffset, offset, NUM_SAMPLES, depth);
+    	float horizonAngle = findHorizonAngle(startOffset, offset, u_numSamples, depth);
     	
     	ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
     }
-    ambientOcclusion /= NUM_DIRECTIONS;
+    ambientOcclusion /= u_numDirections;
 
     occlusion = vec3(ambientOcclusion);
 }
