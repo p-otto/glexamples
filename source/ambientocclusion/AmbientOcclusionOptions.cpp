@@ -11,11 +11,10 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::setAmbientOcclusion);
 
     aoOption->setChoices({
-        None, SSAO,ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased
+        None, ScreenSpaceSphere, ScreenSpaceHemisphere, ScreenSpaceDirectional, HorizonBased
     });
     aoOption->setStrings({
         { None, "None" },
-		{ SSAO, "SSAO" },
         { ScreenSpaceSphere, "SSAO_Sphere" },
         { ScreenSpaceHemisphere, "SSAO_Hemisphere" },
         { ScreenSpaceDirectional, "SSDO" },
@@ -75,17 +74,7 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
         &AmbientOcclusionOptions::halfResolution,
         &AmbientOcclusionOptions::setHalfResolution);
 
-	auto kernelTypeOption = ao_group->addProperty<Kernel::KernelType>("Kernel Type", this,
-		&AmbientOcclusionOptions::kernelType,
-		&AmbientOcclusionOptions::setKernelType);
-
-	kernelTypeOption->setChoices({ Kernel::KernelType::Sphere, Kernel::KernelType::Hemisphere });
-	kernelTypeOption->setStrings({
-		{ Kernel::KernelType::Sphere, "Sphere" },
-		{ Kernel::KernelType::Hemisphere, "Hemisphere" }
-	});
-
-	auto lengthDistributionOption = ao_group->addProperty<Kernel::LengthDistribution>("Length Distribution", this,
+	auto lengthDistributionOption = ao_group->addProperty<Kernel::LengthDistribution>("length_distribution", this,
 		&AmbientOcclusionOptions::lengthDistribution,
 		&AmbientOcclusionOptions::setLengthDistribution);
 
@@ -96,7 +85,7 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 		{ Kernel::LengthDistribution::Starcraft, "Starcraft" }
 	});
 
-	auto surfaceDistributionOption = ao_group->addProperty<Kernel::SurfaceDistribution>("Surface Distribution", this,
+	auto surfaceDistributionOption = ao_group->addProperty<Kernel::SurfaceDistribution>("surface_distribution", this,
 		&AmbientOcclusionOptions::surfaceDistribution,
 		&AmbientOcclusionOptions::setSurfaceDistribution);
 

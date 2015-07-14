@@ -28,9 +28,9 @@ HBAO::HBAO(const AmbientOcclusionOptions * options)
     );
 }
 
-std::vector<glm::vec3> HBAO::getKernel(int size)
+Kernel::KernelType HBAO::getKernelType()
 {
-    return {};
+    return Kernel::KernelType::Hemisphere;
 }
 
 std::vector<glm::vec3> HBAO::getNoiseTexture(int size) {

@@ -11,7 +11,7 @@ public:
     virtual void process(globjects::Texture * normalsDepth, std::vector<globjects::Texture*> colors);
 
 protected:
-    virtual std::vector<glm::vec3> getKernel(int size) override;
+    virtual Kernel::KernelType getKernelType() override;
     virtual std::vector<glm::vec3> getNoiseTexture(int size) override;
     virtual void initializeMethodSpecific() override;
     virtual void updateFramebufferMethodSpecific(const int width, const int height);

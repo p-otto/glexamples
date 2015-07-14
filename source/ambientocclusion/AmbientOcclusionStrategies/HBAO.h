@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AmbientOcclusionStage.h"
+#include "Kernel.h"
 
 class HBAO : public AmbientOcclusionStage
 {
@@ -8,7 +9,7 @@ public:
     HBAO(const AmbientOcclusionOptions *options);
     virtual ~HBAO() = default;
 
-    virtual std::vector<glm::vec3> getKernel(int size) override;
+    virtual Kernel::KernelType getKernelType() override;
     virtual std::vector<glm::vec3> getNoiseTexture(int size) override;
 
 

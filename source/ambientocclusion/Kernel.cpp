@@ -9,12 +9,18 @@ namespace {
 	Kernel::SurfaceDistribution sDist;
 	std::default_random_engine randEngine;
 
-	float scaleFunction(float scale){
+	float scaleFunction(float scale, int sample, int maxSample){
 		switch (lDist) {
 		case Kernel::LengthDistribution::Linear:
 			return scale;
 		case Kernel::LengthDistribution::Quadratic:
 			return scale*scale;
+        case Kernel::LengthDistribution::Starcraft:
+            // one fourth of the samples is nearer to the center
+            if (sample < maxSample / 4) {
+                scale /= 4;
+            }
+            return scale*scale;
 		}
 	}
 
@@ -32,9 +38,10 @@ namespace {
 
 			vec = glm::normalize(vec);
 
-			float scale = static_cast<float>(count++) / size;
-			scale = glm::mix(minSize, 1.0f, scaleFunction(scale));
+			float scale = static_cast<float>(count) / size;
+			scale = glm::mix(minSize, 1.0f, scaleFunction(scale, count, size));
 			vec *= scale;
+            ++count;
 		}
 
 		return kernel;
@@ -57,9 +64,10 @@ namespace {
 
 			vec = glm::normalize(vec);
 
-			float scale = static_cast<float>(count++) / size;
-			scale = glm::mix(minSize, 1.0f, scaleFunction(scale));
+			float scale = static_cast<float>(count) / size;
+			scale = glm::mix(minSize, 1.0f, scaleFunction(scale, count, size));
 			vec *= scale;
+            ++count;
 		}
 
 		return kernel;
@@ -67,30 +75,16 @@ namespace {
 }
 
 namespace Kernel {
-    // TODO implement uniform surface distribution by using a icosahedron.
-	
-
-	
-	std::vector<glm::vec3> getKernel(int size, float minSize, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution, float *args)
+    // TODO: implement uniform surface distribution by using a icosahedron.
+	std::vector<glm::vec3> getKernel(int size, float minSize, float minAngle, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution)
 	{
 		lDist = lengthDistribution;
 		sDist = surfaceDistribution;
 		switch (type) {
 		case KernelType::Sphere:
-			return getSphereKernel(size,minSize);
+			return getSphereKernel(size, minSize);
 		case KernelType::Hemisphere:
-			return getHemisphereKernel(size, minSize, (args != nullptr) ? args[0] : DEFAULT_MIN_ANGLE);
+			return getHemisphereKernel(size, minSize, minAngle);
 		}
-	}
-
-	std::vector<glm::vec3> getKernel(int size, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution, float *args){
-		return getKernel(size, DEFAULT_MIN_SIZE, type, lengthDistribution, surfaceDistribution, args);
-	}
-
-	std::vector<glm::vec3> getKernel(int size, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution){
-		return getKernel(size, DEFAULT_MIN_SIZE, type, lengthDistribution, surfaceDistribution,nullptr);
-	}
-	std::vector<glm::vec3> getKernel(int size, int minSize,KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution){
-		return getKernel(size, minSize, type, lengthDistribution, surfaceDistribution, nullptr);
 	}
 }

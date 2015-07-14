@@ -29,9 +29,9 @@ SSAONone::SSAONone(const AmbientOcclusionOptions * options)
     );
 }
 
-std::vector<glm::vec3> SSAONone::getKernel(int size)
+Kernel::KernelType SSAONone::getKernelType()
 {
-    return {};
+    return Kernel::KernelType::Hemisphere;
 }
 
 std::vector<glm::vec3> SSAONone::getNoiseTexture(int size)

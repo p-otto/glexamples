@@ -48,30 +48,9 @@ void SSDO::updateFramebufferMethodSpecific(const int width, const int height)
     m_firstPassAttachment->image2D(0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 }
 
-std::vector<glm::vec3> SSDO::getKernel(int size)
+Kernel::KernelType SSDO::getKernelType()
 {
-    std::vector<glm::vec3> kernel(size);
-    int count = 1;
-
-    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
-    std::uniform_real_distribution<float> positive_distribution(0.0, 1.0);
-
-    for (auto &vec : kernel)
-    {
-        do {
-            vec[0] = distribution(m_randEngine);
-            vec[1] = distribution(m_randEngine);
-            vec[2] = positive_distribution(m_randEngine);
-        } while (glm::dot(vec, glm::vec3(0, 0, 1)) < m_occlusionOptions->minimalKernelAngle());
-
-        vec = glm::normalize(vec);
-
-        float scale = static_cast<float>(count++) / size;
-        scale = glm::mix(m_occlusionOptions->minimalKernelLength(), 1.0f, scale * scale);
-        vec *= scale;
-    }
-
-    return kernel;
+    return Kernel::KernelType::Hemisphere;
 }
 
 std::vector<glm::vec3> SSDO::getNoiseTexture(int size)

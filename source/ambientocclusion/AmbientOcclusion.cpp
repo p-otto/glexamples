@@ -14,7 +14,6 @@
 #include "AmbientOcclusionStrategies/SSAOSphere.h"
 #include "AmbientOcclusionStrategies/HBAO.h"
 #include "AmbientOcclusionStrategies/SSDO.h"
-#include "AmbientOcclusionStrategies/SSAOGeneral.h"
 
 #include <chrono>
 #include <fstream>
@@ -98,9 +97,6 @@ void AmbientOcclusion::updateAmbientOcclusion()
     case HorizonBased:
         m_ambientOcclusionStage = gloperate::make_unique<HBAO>(m_occlusionOptions.get());
         break;
-	case SSAO:
-		m_ambientOcclusionStage = gloperate::make_unique<SSAOGeneral>(m_occlusionOptions.get());
-		break;
     default:
         m_ambientOcclusionStage = gloperate::make_unique<SSAONone>(m_occlusionOptions.get());
         break;

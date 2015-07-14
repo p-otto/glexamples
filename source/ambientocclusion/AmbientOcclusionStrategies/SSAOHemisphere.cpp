@@ -31,17 +31,9 @@ SSAOHemisphere::SSAOHemisphere(const AmbientOcclusionOptions * options)
     );
 }
 
-std::vector<glm::vec3> SSAOHemisphere::getKernel(int size)
+Kernel::KernelType SSAOHemisphere::getKernelType()
 {
-
-
-	// keine ahnung wie man inline ein float array erstellt. 
-	// TODO: haesslichen workaround fixen
-	// wuerde sowas gehen wie &m_occlus... ? ist ja ein pointer theoretisch
-	float howdoesthisevenwork[] = { m_occlusionOptions->minimalKernelAngle() };
-
-	// erstelle Kernel mit default Hemisphere optionen
-	return Kernel::getKernel(size, Kernel::KernelType::Hemisphere, Kernel::LengthDistribution::Quadratic, Kernel::SurfaceDistribution::Random, howdoesthisevenwork);
+    return Kernel::KernelType::Hemisphere;
 }
 
 std::vector<glm::vec3> SSAOHemisphere::getNoiseTexture(int size)

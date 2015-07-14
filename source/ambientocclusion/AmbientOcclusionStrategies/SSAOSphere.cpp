@@ -23,7 +23,6 @@ using namespace globjects;
 SSAOSphere::SSAOSphere(const AmbientOcclusionOptions * options)
 :   AmbientOcclusionStage(options)
 {
-	//TODO: refactor fragment shaders, make SSAOGeneral only simple SSAO strategy
     m_program = new Program{};
     m_program->attach(
         Shader::fromFile(GL_VERTEX_SHADER, "data/ambientocclusion/screen_quad.vert"),
@@ -31,10 +30,9 @@ SSAOSphere::SSAOSphere(const AmbientOcclusionOptions * options)
     );
 }
 
-std::vector<glm::vec3> SSAOSphere::getKernel(int size)
+Kernel::KernelType SSAOSphere::getKernelType()
 {
-	// erstelle Kernel mit default Sphere optionen
-	return Kernel::getKernel(size, Kernel::KernelType::Sphere, Kernel::LengthDistribution::Quadratic, Kernel::SurfaceDistribution::Random);
+    return Kernel::KernelType::Sphere;
 }
 
 std::vector<glm::vec3> SSAOSphere::getNoiseTexture(int size)

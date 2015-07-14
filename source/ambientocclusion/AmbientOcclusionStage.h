@@ -42,10 +42,13 @@ public:
     void updateFramebuffer(const int width, const int height);
 
 protected:
-    virtual std::vector<glm::vec3> getKernel(int size) = 0;
+    std::vector<glm::vec3> getKernel(int size);
+    
     virtual std::vector<glm::vec3> getNoiseTexture(int size) = 0;
     virtual void initializeMethodSpecific();
     virtual void updateFramebufferMethodSpecific(const int width, const int height);
+
+    virtual Kernel::KernelType getKernelType() = 0;
 
     /* members */
     const AmbientOcclusionOptions * m_occlusionOptions;
