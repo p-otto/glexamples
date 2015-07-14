@@ -25,8 +25,8 @@ const float pi = 3.14159265;
 
 float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float depth)
 {
-	float largestHorizonAngle = 0.0;
-	for (int step = 1; step < numSamples; step++) {
+	float largestHorizonAngle = -pi / 2;
+	for (int step = 1; step <= numSamples; step++) {
         vec2 sampleOffset = snapToGrid(startOffset + offset * step, resolution);
 		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
 		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
@@ -81,5 +81,5 @@ void main()
     }
     ambientOcclusion /= u_numDirections;
 
-    occlusion = vec3(ambientOcclusion);
+    occlusion = vec3(ambientOcclusion) + 1;
 }
