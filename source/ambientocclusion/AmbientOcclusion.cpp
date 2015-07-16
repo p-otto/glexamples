@@ -123,18 +123,35 @@ void AmbientOcclusion::updateFramebuffers()
 
 void AmbientOcclusion::benchmark()
 {
-    static const int num_frames = 5;
+    static const AmbientOcclusionType types[] = {
+        AmbientOcclusionType::None,
+        AmbientOcclusionType::ScreenSpaceSphere,
+        AmbientOcclusionType::ScreenSpaceHemisphere,
+        AmbientOcclusionType::HorizonBased,
+        AmbientOcclusionType::ScreenSpaceDirectional
+    };
+    
+    static const int num_frames = 60;
+    m_occlusionOptions->setKernelSize(32);
+    m_occlusionOptions->setblurKernelSize(0);
 
-    globjects::ref_ptr<globjects::Query> query = make_ref<globjects::Query>();
-    query->begin(GL_TIME_ELAPSED);
-    for (int i = 0; i < num_frames; ++i)
+    for (const auto &type : types)
     {
-        onPaint();
-    }
-    query->end(GL_TIME_ELAPSED);
+        globjects::ref_ptr<globjects::Query> query = make_ref<globjects::Query>();
 
-    // output time in milliseconds
-    debug() << static_cast<float>(query->waitAndGet64(GL_QUERY_RESULT)) / 1000000 / num_frames << std::endl;
+        m_occlusionOptions->setAmbientOcclusion(type);
+        onPaint(); // ensure that lazy initialization is finished
+
+        query->begin(GL_TIME_ELAPSED);
+        for (int i = 0; i < num_frames; ++i)
+        {
+            onPaint();
+        }
+        query->end(GL_TIME_ELAPSED);
+
+        // output time in milliseconds
+        debug() << static_cast<float>(query->waitAndGet64(GL_QUERY_RESULT)) / 1000000 / num_frames << std::endl;
+    }
 }
 
 void AmbientOcclusion::onInitialize()
