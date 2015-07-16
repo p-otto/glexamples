@@ -33,6 +33,7 @@
 #include <globjects/Texture.h>
 #include <globjects/Framebuffer.h>
 #include <globjects/NamedString.h>
+#include <globjects/Query.h>
 
 #include <gloperate/base/RenderTargetType.h>
 
@@ -120,6 +121,22 @@ void AmbientOcclusion::updateFramebuffers()
     m_blurStage->updateFramebuffer(width, height);
 }
 
+void AmbientOcclusion::benchmark()
+{
+    static const int num_frames = 5;
+
+    globjects::ref_ptr<globjects::Query> query = make_ref<globjects::Query>();
+    query->begin(GL_TIME_ELAPSED);
+    for (int i = 0; i < num_frames; ++i)
+    {
+        onPaint();
+    }
+    query->end(GL_TIME_ELAPSED);
+
+    // output time in milliseconds
+    debug() << static_cast<float>(query->waitAndGet64(GL_QUERY_RESULT)) / 1000000 / num_frames << std::endl;
+}
+
 void AmbientOcclusion::onInitialize()
 {
     // create program
@@ -159,6 +176,8 @@ void AmbientOcclusion::onInitialize()
     
     updateFramebuffers();
     setupProjection();
+
+    benchmark();
 }
 
 void AmbientOcclusion::updateKernel() {

@@ -51,6 +51,7 @@ protected:
     virtual void onInitialize() override;
     virtual void onPaint() override;
 
+    void benchmark();
     void updateAmbientOcclusion();
 	void updateKernel();
 
