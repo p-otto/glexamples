@@ -44,7 +44,6 @@ set(sources
     ${source_path}/AmbientOcclusionStrategies/SSAOHemisphere.cpp
     ${source_path}/AmbientOcclusionStrategies/HBAO.cpp
     ${source_path}/AmbientOcclusionStrategies/SSDO.cpp
-	${source_path}/AmbientOcclusionStrategies/SSAOGeneral.cpp
     ${source_path}/BlurStage.cpp
     ${source_path}/GeometryStage.cpp
     ${source_path}/MixStage.cpp
@@ -63,7 +62,6 @@ set(api_includes
     ${include_path}/AmbientOcclusionStrategies/SSAOHemisphere.h
     ${include_path}/AmbientOcclusionStrategies/HBAO.h
     ${include_path}/AmbientOcclusionStrategies/SSDO.h
-	${include_path}/AmbientOcclusionStrategies/SSAOGeneral.h
     ${include_path}/BlurStage.h
     ${include_path}/GeometryStage.h
     ${include_path}/MixStage.h
