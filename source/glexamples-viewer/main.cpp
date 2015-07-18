@@ -13,6 +13,8 @@
 
 #include <widgetzeug/dark_fusion_style.hpp>
 
+#include "glexamples-version.h"
+
 
 class Application : public gloperate_qt::Application
 {
@@ -24,11 +26,11 @@ public:
 
         QApplication::setApplicationDisplayName(fi.baseName());
 
-        QApplication::setApplicationName("glexamples");
-        QApplication::setApplicationVersion("1.0.0");
+        QApplication::setApplicationName(GLEXAMPLES_PROJECT_NAME);
+        QApplication::setApplicationVersion(GLEXAMPLES_VERSION);
 
-        QApplication::setOrganizationName("HPI Computer Graphics Systems Group");
-        QApplication::setOrganizationDomain("https://github.com/hpicgs");
+        QApplication::setOrganizationName(GLEXAMPLES_AUTHOR_ORGANIZATION);
+        QApplication::setOrganizationDomain(GLEXAMPLES_AUTHOR_DOMAIN);
     }
 
     virtual ~Application() = default;
