@@ -32,7 +32,8 @@ float linearDepthToLogDepth(float depth, mat4 proj)
     return 0.5*(-A*depth + B) / depth + 0.5;
 }
 
-vec2 rotate(vec2 direction, vec2 rand) {
+vec2 rotate(vec2 direction, vec2 rand)
+{
     return vec2(direction.x*rand.x - direction.y*rand.y,
                   direction.x*rand.y + direction.y*rand.x);
 }

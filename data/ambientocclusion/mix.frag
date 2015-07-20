@@ -23,9 +23,9 @@ void main()
     vec3 occlusion = texture(u_blur, v_uv).rgb;
 
     // for SSDO the occlusion and color bleeding values are packed into one texture
- 	// so they are unpacked here
+    // so they are unpacked here
     if (u_packed_occlusion) {
-    	occlusion *= 2.0;
+        occlusion *= 2.0;
     }
 
     gl_FragDepth = texture(u_depth, v_uv).r;
