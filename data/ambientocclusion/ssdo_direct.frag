@@ -65,7 +65,7 @@ void main()
         // here, a environment map is simulated by using the up vector as the maximal ambient light
         vec3 position_to_sample = normalize(view_sample_point - position);
         float is_illuminated = clamp((1.0 - occluded) + (1.0 - range_check), 0.0, 1.0);
-        occlusion += ambient_color * is_illuminated * clamp(dot(position_to_sample, vec3(0.0, 1.0, 0.0)) + 1.0, 0.0, 1.0);
+        occlusion += ambient_color * is_illuminated;
     }
 
     occlusion /= u_kernelSize;

@@ -14,6 +14,11 @@ uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform int u_numDirections;
 uniform int u_numSamples;
+uniform int u_lengthDistribution;
+
+const int linear = 0;
+const int quadratic = 1;
+const int starcraft = 2;
 
 ivec2 resolution = ivec2(u_resolutionX, u_resolutionY);
 
@@ -27,9 +32,21 @@ float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float dept
 {
 	float largestHorizonAngle = -pi / 2;
 	for (int step = 1; step <= numSamples; step++) {
-        vec2 sampleOffset = snapToGrid(startOffset + offset * step, resolution);
+		float sampleDistance = float(step) / numSamples;
+		switch (u_lengthDistribution) {
+			case quadratic:
+				sampleDistance *= sampleDistance;
+				break;
+			case starcraft:
+				if (step > 3 * float(numSamples) / 4) {
+	                sampleDistance *= 4;
+	            }
+	            sampleDistance *= sampleDistance;
+	            break;
+		}
+        vec2 sampleOffset = snapToGrid(startOffset + offset * sampleDistance, resolution);
 		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
-		float horizonAngle = atan((sampleDepth - depth)/ length(sampleOffset));
+		float horizonAngle = atan((sampleDepth - depth), length(sampleOffset));
 
 		largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
 	}
@@ -56,21 +73,21 @@ void main()
     vec3 dy = dFdy(position);
 
     float ambientOcclusion = 0.0;
-    float stepSize = u_kernelRadius / u_numSamples;
 
     vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
     vec3 random = texture(u_rotation, v_uv * noise_scale).xyz;
 
     for (int i = 0; i < u_numDirections; i++) {
     	float angle = i * (2 * pi / u_numDirections);
-    	vec2 sampleDirection = rotate(vec2(sin(angle), cos(angle)), random.xy);
+    	vec2 sampleDirection = vec2(sin(angle), cos(angle));
+    	sampleDirection = rotate(sampleDirection, random.xy);
     	sampleDirection = normalize(sampleDirection);
-    	vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * stepSize, 0.0), 1.0);
-    	
+
+    	vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * u_kernelRadius, 0.0), 1.0);
     	scaledDirection /= scaledDirection.w;
     	scaledDirection = scaledDirection * 0.5 + 0.5;
-
     	scaledDirection -= vec4(v_uv, 0.0, 0.0);
+
         vec2 startOffset = snapToGrid(scaledDirection.xy * random.z, resolution);
     	vec2 offset = scaledDirection.xy;
 
