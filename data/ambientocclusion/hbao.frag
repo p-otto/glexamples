@@ -46,7 +46,7 @@ float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float dept
 		}
         vec2 sampleOffset = snapToGrid(startOffset + offset * sampleDistance, resolution);
 		float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
-		float horizonAngle = atan((sampleDepth - depth), length(sampleOffset));
+		float horizonAngle = atan(depth - sampleDepth, length(sampleOffset));
 
 		largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
 	}
@@ -98,5 +98,5 @@ void main()
     }
     ambientOcclusion /= u_numDirections;
 
-    occlusion = vec3(ambientOcclusion) + 1;
+    occlusion = 1 - vec3(ambientOcclusion);
 }
