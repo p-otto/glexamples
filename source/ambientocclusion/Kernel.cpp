@@ -8,7 +8,8 @@ namespace
 	Kernel::SurfaceDistribution sDist;
 	std::default_random_engine randEngine;
 
-	float scaleFunction(float scale, int sample, int maxSample){
+	float scaleFunction(float scale, int sample, int maxSample)
+    {
 		switch (lDist) {
 		case Kernel::LengthDistribution::Linear:
 			return scale;
@@ -23,7 +24,8 @@ namespace
 		}
 	}
 
-	std::vector<glm::vec3> getSphereKernel(int size, float minSize) {
+	std::vector<glm::vec3> getSphereKernel(int size, float minSize)
+    {
 		std::vector<glm::vec3> kernel(size);
 		int count = 1;
 
@@ -46,7 +48,8 @@ namespace
 		return kernel;
 	}
 
-	std::vector<glm::vec3> getHemisphereKernel(int size, float minSize, float minAngle) {
+	std::vector<glm::vec3> getHemisphereKernel(int size, float minSize, float minAngle)
+    {
 		std::vector<glm::vec3> kernel(size);
 		int count = 1;
 

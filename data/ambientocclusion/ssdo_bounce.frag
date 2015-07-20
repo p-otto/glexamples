@@ -68,7 +68,7 @@ void main()
         sender_ndc = u_invProj * sender_ndc;
         vec3 sender_position = sender_ndc.xyz / sender_ndc.w;
 
-        // calculate angles between transmission direction and the both normals
+        // calculate angles between transmission direction and both normals
         vec3 transmittance_direction = normalize(position - sender_position);
         vec3 sender_normal = normalize(texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0);
         float sender_transmittance_cos = max(0.0, dot(sender_normal, transmittance_direction));
