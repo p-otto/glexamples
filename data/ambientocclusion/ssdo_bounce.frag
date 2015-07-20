@@ -27,7 +27,7 @@ uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
 
-const float color_bleeding_strength = 5.0;
+const float color_bleeding_strength = 1.0;
 
 #include "/utility"
 
@@ -73,7 +73,6 @@ void main()
         vec3 sender_normal = normalize(texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0);
         float sender_transmittance_cos = max(0.0, dot(sender_normal, transmittance_direction));
         float receiver_transmittance_cos = max(0.0, dot(normal, -transmittance_direction));
-        // TODO: factor in attenuation
         float dist = abs(linear_comp_depth - linear_sample_depth);
 
         vec3 ambient = texture(u_ambient, ndc_sample_point.xy).rgb;
@@ -83,16 +82,18 @@ void main()
         cur_color_bleeding *= sender_transmittance_cos * receiver_transmittance_cos;
         cur_color_bleeding *= u_kernelRadius * u_kernelRadius;
         cur_color_bleeding /= max(1.0, dist * dist);
-        color_bleeding += clamp(cur_color_bleeding, 0.0, 1.0);
+        color_bleeding += cur_color_bleeding;
     }
 
     color_bleeding /= u_kernelSize;
+    color_bleeding = clamp(color_bleeding, 0.0, 1.0);
 
     if (depth > 0.99)
     {
         color_bleeding = vec3(0.0);
     }
 
-    // add original color and accumulated color bleeding
+    // add original color and accumulated color bleeding and pack them into one texture
     color = texture(u_direct_light, v_uv).rgb + color_bleeding;
+    color /= 2.0;
 }

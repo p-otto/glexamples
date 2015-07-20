@@ -38,12 +38,15 @@ void MixStage::process(globjects::Texture *ambientTexture, globjects::Texture *d
 
     m_screenAlignedQuad->program()->setUniform("u_ambient_factor", m_occlusionOptions->ambient());
 
+    // for SSDO occlusion and color bleeding values are packed into one texture
+    m_screenAlignedQuad->program()->setUniform("u_packed_occlusion", m_occlusionOptions->ambientOcclusion() == ScreenSpaceDirectional);
+
 	m_screenAlignedQuad->setTextures({
         { "u_ambient", ambientTexture },
 		{ "u_diffuse", diffuseTexture },
 		{ "u_blur", blurTexture },
 		{ "u_normal_depth", normalDepthTexture },
-        { "u_depth", depthBuffer }
+        { "u_depth", depthBuffer },
 	});
 
 	m_screenAlignedQuad->draw();
