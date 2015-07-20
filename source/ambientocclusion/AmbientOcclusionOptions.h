@@ -44,6 +44,10 @@ public:
     int numSamples() const;
     void setNumSamples(int numSamples);
 
+    // ssdo settings
+    float colorBleedingStrength() const;
+    void setColorBleedingStrength(float colorBleedingStrength);
+
 	// blur settings
 
 	int blurKernelSize() const;
@@ -90,6 +94,8 @@ private:
 
     int m_numSamples = 5;
     int m_numDirections = 6;
+
+    float m_colorBleedingStrength = 1.0;
 
     bool m_resolutionChanged = false;
     bool m_ambientOcclusionChanged = false;

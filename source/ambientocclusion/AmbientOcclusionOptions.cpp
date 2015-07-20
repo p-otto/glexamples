@@ -24,6 +24,7 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
     auto phong_group = m_painter.addGroup("phong");
     auto ao_group = m_painter.addGroup("ssao");
     auto hbao_group = m_painter.addGroup("hbao");
+    auto ssdo_group = m_painter.addGroup("ssdo");
     auto blur_group = m_painter.addGroup("blurring");
 
     hbao_group->addProperty<int>("number_of_samples", this,
@@ -40,6 +41,14 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
             { "minimum", 0 },
             { "maximum", 10 },
             { "step", 1 }
+    });
+
+    ssdo_group->addProperty<float>("color_bleeding_strength", this,
+        &AmbientOcclusionOptions::colorBleedingStrength,
+        &AmbientOcclusionOptions::setColorBleedingStrength)->setOptions({
+            { "minimum", 0.0f },
+            { "maximum", 1.0f },
+            { "step", 0.1f }
     });
 
     phong_group->addProperty<float>("ambient", this,
@@ -218,20 +227,34 @@ void AmbientOcclusionOptions::setColor(bool color)
     m_color = color;
 }
 
-int AmbientOcclusionOptions::numSamples() const {
+int AmbientOcclusionOptions::numSamples() const
+{
     return m_numSamples;
 }
 
-void AmbientOcclusionOptions::setNumSamples(int numSamples) {
+void AmbientOcclusionOptions::setNumSamples(int numSamples)
+{
     m_numSamples = numSamples;
 }
 
-int AmbientOcclusionOptions::numDirections() const {
+int AmbientOcclusionOptions::numDirections() const
+{
     return m_numDirections;
 }
 
-void AmbientOcclusionOptions::setNumDirections(int numDirections) {
+void AmbientOcclusionOptions::setNumDirections(int numDirections)
+{
     m_numDirections = numDirections;
+}
+
+float AmbientOcclusionOptions::colorBleedingStrength() const
+{
+    return m_colorBleedingStrength;
+}
+
+void AmbientOcclusionOptions::setColorBleedingStrength(float colorBleedingStrength)
+{
+    m_colorBleedingStrength = colorBleedingStrength;
 }
 
 int AmbientOcclusionOptions::rotationTexSize() const
