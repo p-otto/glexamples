@@ -2,9 +2,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <random>
 
-namespace {
-	const float DEFAULT_MIN_ANGLE = 0.1f;
-	const float DEFAULT_MIN_SIZE = 0.1f;
+namespace
+{
 	Kernel::LengthDistribution lDist;
 	Kernel::SurfaceDistribution sDist;
 	std::default_random_engine randEngine;
@@ -17,8 +16,8 @@ namespace {
 			return scale*scale;
         case Kernel::LengthDistribution::Starcraft:
             // one fourth of the samples is nearer to the center
-            if (sample < maxSample / 4) {
-                scale /= 4;
+            if (sample > 3 * maxSample / 4) {
+                scale *= 4;
             }
             return scale*scale;
 		}
@@ -74,7 +73,8 @@ namespace {
 	}
 }
 
-namespace Kernel {
+namespace Kernel
+{
     // TODO: implement uniform surface distribution by using a icosahedron.
 	std::vector<glm::vec3> getKernel(int size, float minSize, float minAngle, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution)
 	{
