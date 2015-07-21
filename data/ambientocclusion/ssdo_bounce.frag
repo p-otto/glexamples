@@ -21,13 +21,12 @@ uniform int u_resolutionY;
 uniform float u_kernelRadius;
 uniform int u_kernelSize;
 uniform bool u_attenuation;
+uniform float u_color_bleeding_strength;
 
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
 
 layout(location = 0) out vec3 color;
-
-const float color_bleeding_strength = 1.0;
 
 #include "/utility"
 
@@ -68,7 +67,7 @@ void main()
         sender_ndc = u_invProj * sender_ndc;
         vec3 sender_position = sender_ndc.xyz / sender_ndc.w;
 
-        // calculate angles between transmission direction and the both normals
+        // calculate angles between transmission direction and both normals
         vec3 transmittance_direction = normalize(position - sender_position);
         vec3 sender_normal = normalize(texture(u_normal_depth, ndc_sample_point.xy).rgb * 2.0 - 1.0);
         float sender_transmittance_cos = max(0.0, dot(sender_normal, transmittance_direction));
@@ -78,7 +77,7 @@ void main()
         vec3 ambient = texture(u_ambient, ndc_sample_point.xy).rgb;
         vec3 direct_light = texture(u_direct_light, ndc_sample_point.xy).rgb;
 
-        vec3 cur_color_bleeding = color_bleeding_strength * ambient * direct_light * occluded;
+        vec3 cur_color_bleeding = u_color_bleeding_strength * ambient * direct_light * occluded;
         cur_color_bleeding *= sender_transmittance_cos * receiver_transmittance_cos;
         cur_color_bleeding *= u_kernelRadius * u_kernelRadius;
         cur_color_bleeding /= max(1.0, dist * dist);
