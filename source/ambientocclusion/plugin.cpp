@@ -6,7 +6,7 @@
 
 GLOPERATE_PLUGIN_LIBRARY
 
-    GLOPERATE_PLUGIN(AmbientOcclusion
+    GLOPERATE_PAINTER_PLUGIN(AmbientOcclusion
     , "AmbientOcclusion"
     , "Screen-Space Ambient Occlusion Techniques"
     , GLEXAMPLES_AUTHOR_ORGANIZATION

@@ -37,7 +37,7 @@ namespace gloperate
 class AmbientOcclusion : public gloperate::Painter
 {
 public:
-    AmbientOcclusion(gloperate::ResourceManager & resourceManager);
+    AmbientOcclusion(gloperate::ResourceManager & resourceManager, const std::string & relDataPath);
     virtual ~AmbientOcclusion();
 
     void setupProjection();
