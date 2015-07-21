@@ -30,8 +30,8 @@
 #include <globjects/Texture.h>
 #include <globjects/AttachedTexture.h>
 
-OpenGLExample::OpenGLExample(gloperate::ResourceManager & resourceManager)
-:   Painter(resourceManager)
+OpenGLExample::OpenGLExample(gloperate::ResourceManager & resourceManager, const std::string & relDataPath)
+:   Painter("EmptyExample", resourceManager, relDataPath)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))

@@ -7,13 +7,13 @@
 
 GLOPERATE_PLUGIN_LIBRARY
 
-    GLOPERATE_PLUGIN(ScreenDoor
+    GLOPERATE_PAINTER_PLUGIN(ScreenDoor
     , "ScreenDoor"
     , "Screen-Door Transparency"
     , GLEXAMPLES_AUTHOR_ORGANIZATION
     , "v1.0.0" )
 
-    GLOPERATE_PLUGIN(StochasticTransparency
+    GLOPERATE_PAINTER_PLUGIN(StochasticTransparency
     , "StochasticTransparency"
     , "Stochastic Transparency"
     , GLEXAMPLES_AUTHOR_ORGANIZATION

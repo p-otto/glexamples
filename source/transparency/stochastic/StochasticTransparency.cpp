@@ -44,8 +44,8 @@ using namespace globjects;
 
 using widgetzeug::make_unique;
 
-StochasticTransparency::StochasticTransparency(gloperate::ResourceManager & resourceManager)
-:   Painter(resourceManager)
+StochasticTransparency::StochasticTransparency(gloperate::ResourceManager & resourceManager, const std::string & relDataPath)
+:   Painter("StochasticTransparency", resourceManager, relDataPath)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))

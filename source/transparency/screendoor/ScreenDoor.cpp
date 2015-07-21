@@ -40,8 +40,8 @@ using namespace globjects;
 
 using widgetzeug::make_unique;
 
-ScreenDoor::ScreenDoor(gloperate::ResourceManager & resourceManager)
-:   Painter(resourceManager)
+ScreenDoor::ScreenDoor(gloperate::ResourceManager & resourceManager, const std::string & relDataPath)
+:   Painter("ScreenDoor", resourceManager, relDataPath)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))

@@ -35,7 +35,7 @@ class StochasticTransparencyOptions;
 class StochasticTransparency : public gloperate::Painter
 {
 public:
-    StochasticTransparency(gloperate::ResourceManager & resourceManager);
+    StochasticTransparency(gloperate::ResourceManager & resourceManager, const std::string & relDataPath);
     virtual ~StochasticTransparency() override;
     
 protected:

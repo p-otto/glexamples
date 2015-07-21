@@ -33,7 +33,7 @@ namespace gloperate
 class ScreenDoor : public gloperate::Painter
 {
 public:
-    ScreenDoor(gloperate::ResourceManager & resourceManager);
+    ScreenDoor(gloperate::ResourceManager & resourceManager, const std::string & relDataPath);
     virtual ~ScreenDoor();
     
 public:

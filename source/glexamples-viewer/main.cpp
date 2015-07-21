@@ -3,35 +3,39 @@
 #pragma comment(linker, "/SUBSYSTEM:WINDOWS /entry:mainCRTStartup")
 #endif
 
-#include <gloperate-qtapplication/AbstractApplication.h>
-
-#include <QFileInfo>
 
 #include <memory>
 
-#include <gloperate-qtapplication/Viewer.h>
+#include <QFileInfo>
+
+#include <gloperate-qt/viewer/Application.h>
+#include <gloperate-qt/viewer/Viewer.h>
 
 #include <widgetzeug/dark_fusion_style.hpp>
 
-class Application : public gloperate_qtapplication::AbstractApplication
+#include "glexamples-version.h"
+
+
+class Application : public gloperate_qt::Application
 {
 public:
     Application(int & argc, char ** argv)
-        : AbstractApplication(argc, argv)
+    : gloperate_qt::Application(argc, argv)
     {
         const QFileInfo fi(QCoreApplication::applicationFilePath());
 
         QApplication::setApplicationDisplayName(fi.baseName());
 
-        QApplication::setApplicationName("glexamples");
-        QApplication::setApplicationVersion("1.0.0");
+        QApplication::setApplicationName(GLEXAMPLES_PROJECT_NAME);
+        QApplication::setApplicationVersion(GLEXAMPLES_VERSION);
 
-        QApplication::setOrganizationName("HPI Computer Graphics Systems Group");
-        QApplication::setOrganizationDomain("https://github.com/hpicgs");
+        QApplication::setOrganizationName(GLEXAMPLES_AUTHOR_ORGANIZATION);
+        QApplication::setOrganizationDomain(GLEXAMPLES_AUTHOR_DOMAIN);
     }
 
     virtual ~Application() = default;
 };
+
 
 int main(int argc, char * argv[])
 {
@@ -39,7 +43,7 @@ int main(int argc, char * argv[])
 
     widgetzeug::enableDarkFusionStyle();
 
-    gloperate_qtapplication::Viewer viewer;
+    gloperate_qt::Viewer viewer;
     viewer.show();
 
     return app.exec();

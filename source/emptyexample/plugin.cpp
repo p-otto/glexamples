@@ -6,7 +6,7 @@
 
 GLOPERATE_PLUGIN_LIBRARY
 
-    GLOPERATE_PLUGIN(EmptyExample
+    GLOPERATE_PAINTER_PLUGIN(EmptyExample
     , "EmptyExample"
     , "Copy to implement a new example"
     , GLEXAMPLES_AUTHOR_ORGANIZATION
