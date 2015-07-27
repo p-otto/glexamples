@@ -34,7 +34,7 @@ Kernel::KernelType SSAONone::getKernelType()
     return Kernel::KernelType::Hemisphere;
 }
 
-std::vector<glm::vec3> SSAONone::getNoiseTexture(int size)
+std::vector<glm::vec3> SSAONone::getNoiseTexture(int)
 {
     return {};
 }

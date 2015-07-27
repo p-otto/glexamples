@@ -22,6 +22,7 @@ namespace
             }
             return scale*scale;
 		}
+        return scale;
 	}
 
 	std::vector<glm::vec3> getSphereKernel(int size, float minSize)
@@ -89,5 +90,6 @@ namespace Kernel
 		case KernelType::Hemisphere:
 			return getHemisphereKernel(size, minSize, minAngle);
 		}
+        return std::vector<glm::vec3>(size);
 	}
 }

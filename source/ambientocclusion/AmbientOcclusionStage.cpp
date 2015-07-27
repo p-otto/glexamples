@@ -53,10 +53,10 @@ void AmbientOcclusionStage::updateFramebuffer(const int width, const int height)
     updateFramebufferMethodSpecific(occlusionWidth, occlusionHeight);
 }
 
-void AmbientOcclusionStage::updateFramebufferMethodSpecific(const int width, const int height)
+void AmbientOcclusionStage::updateFramebufferMethodSpecific(const int, const int)
 {}
 
-void AmbientOcclusionStage::process(globjects::Texture * normalsDepth, std::vector<globjects::Texture*> colors)
+void AmbientOcclusionStage::process(globjects::Texture * normalsDepth, std::vector<globjects::Texture*>)
 {
     m_screenAlignedQuad->setProgram(m_program);
 
