@@ -1,15 +1,16 @@
 #define ROTATION_SIZE 4
 
+const float pi = 3.14159265;
+
 mat3 calcRotatedTbn(sampler2D noise, vec3 normal, vec2 uv, float resX, float resY)
 {
-    vec2 noise_scale = vec2(resX / ROTATION_SIZE, resY / ROTATION_SIZE);
-    vec3 rvec = texture(noise, uv * noise_scale).xyz;
+    vec3 rvec = sampleNoiseTexture(noise, vec2 uv, resX, resY);
     vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
     vec3 bitangent = cross(normal, tangent);
     return mat3(tangent, bitangent, normal);
 }
 
-vec3 calcReflection(sampler2D noise, vec2 uv, float resX, float resY)
+vec3 sampleNoiseTexture(sampler2D noise, vec2 uv, float resX, float resY)
 {
     vec2 noise_scale = vec2(resX / ROTATION_SIZE, resY / ROTATION_SIZE);
     return texture(noise, uv * noise_scale).xyz;

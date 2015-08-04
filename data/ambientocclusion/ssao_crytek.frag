@@ -6,7 +6,6 @@ in vec2 v_uv;
 in vec3 v_viewRay;
 
 uniform sampler2D u_normal_depth;
-#define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
@@ -31,7 +30,7 @@ void main()
     normal = normalize(normal);
 
     vec3 position = calcPosition(v_viewRay, depth);
-    vec3 reflection_normal = calcReflection(u_rotation, v_uv, u_resolutionX, u_resolutionY);
+    vec3 reflection_normal = sampleNoiseTexture(u_rotation, v_uv, u_resolutionX, u_resolutionY);
 
     float occlusion_factor = 0.0;
     for (int i = 0; i < u_kernelSize; ++i)

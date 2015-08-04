@@ -6,7 +6,6 @@ in vec2 v_uv;
 in vec3 v_viewRay;
 
 uniform sampler2D u_normal_depth;
-#define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;

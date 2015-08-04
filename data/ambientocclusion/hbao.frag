@@ -24,13 +24,12 @@ ivec2 resolution = ivec2(u_resolutionX, u_resolutionY);
 
 layout(location = 0) out vec3 occlusion;
 
-const float pi = 3.14159265;
-
 #include "/utility"
 
 float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float depth)
 {
     float largestHorizonAngle = -pi / 2;
+
     for (int step = 1; step <= numSamples; step++) 
     {
         float sampleDistance = float(step) / numSamples;
@@ -66,8 +65,6 @@ float findTangentAngle(vec2 offset, vec3 dx, vec3 dy)
 void main()
 {
     float depth = texture(u_normal_depth, v_uv).a;
-    vec3 normal = texture(u_normal_depth, v_uv).rgb * 2.0 - vec3(1.0);
-    normal = normalize(normal);
 
     vec3 position = calcPosition(v_viewRay, depth);
 
@@ -76,21 +73,24 @@ void main()
 
     float ambientOcclusion = 0.0;
 
-    vec2 noise_scale = vec2(u_resolutionX / ROTATION_SIZE, u_resolutionY / ROTATION_SIZE);
-    vec3 random = texture(u_rotation, v_uv * noise_scale).xyz;
+    vec3 random = sampleNoiseTexture(u_rotation, v_uv, u_resolutionX, u_resolutionY);
 
+    // compute average occlusion over serveral directions
     for (int i = 0; i < u_numDirections; i++)
     {
+        // compute randomly rotated sample texture
         float angle = i * (2 * pi / u_numDirections);
         vec2 sampleDirection = vec2(sin(angle), cos(angle));
         sampleDirection = rotate(sampleDirection, random.xy);
         sampleDirection = normalize(sampleDirection);
 
+        // compute view dependent sample vector
         vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * u_kernelRadius, 0.0), 1.0);
         scaledDirection /= scaledDirection.w;
         scaledDirection = scaledDirection * 0.5 + 0.5;
         scaledDirection -= vec4(v_uv, 0.0, 0.0);
 
+        // jitter starting offset
         vec2 startOffset = snapToGrid(scaledDirection.xy * random.z, resolution);
         vec2 offset = scaledDirection.xy;
 

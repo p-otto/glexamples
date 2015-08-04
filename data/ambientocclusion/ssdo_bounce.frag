@@ -9,7 +9,6 @@ uniform sampler2D u_normal_depth;
 uniform sampler2D u_direct_light;
 uniform sampler2D u_ambient;
 uniform sampler2D u_diffuse;
-#define ROTATION_SIZE 4
 uniform sampler2D u_rotation;
 
 uniform mat4 u_proj;
