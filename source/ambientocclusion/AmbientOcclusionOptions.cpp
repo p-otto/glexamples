@@ -94,16 +94,6 @@ AmbientOcclusionOptions::AmbientOcclusionOptions(AmbientOcclusion &painter)
 		{ Kernel::LengthDistribution::Starcraft, "Starcraft" }
 	});
 
-	auto surfaceDistributionOption = ao_group->addProperty<Kernel::SurfaceDistribution>("surface_distribution", this,
-		&AmbientOcclusionOptions::surfaceDistribution,
-		&AmbientOcclusionOptions::setSurfaceDistribution);
-
-	surfaceDistributionOption->setChoices({ Kernel::SurfaceDistribution::Random, Kernel::SurfaceDistribution::Uniform });
-	surfaceDistributionOption->setStrings({
-		{ Kernel::SurfaceDistribution::Random, "Random" },
-		{ Kernel::SurfaceDistribution::Uniform, "Uniform" }
-	});
-
     blur_group->addProperty<int>("blur_kernel_size", this,
         &AmbientOcclusionOptions::blurKernelSize,
         &AmbientOcclusionOptions::setblurKernelSize)->setOptions({
@@ -185,15 +175,6 @@ Kernel::LengthDistribution AmbientOcclusionOptions::lengthDistribution() const {
 
 void AmbientOcclusionOptions::setLengthDistribution(Kernel::LengthDistribution length) {
 	m_lengthDistribution = length;
-	m_kernelChanged = true;
-}
-
-Kernel::SurfaceDistribution AmbientOcclusionOptions::surfaceDistribution() const {
-	return m_surfaceDistribution;
-}
-
-void AmbientOcclusionOptions::setSurfaceDistribution(Kernel::SurfaceDistribution surface) {
-	m_surfaceDistribution = surface;
 	m_kernelChanged = true;
 }
 

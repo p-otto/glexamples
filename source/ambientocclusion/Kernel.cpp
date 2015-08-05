@@ -5,7 +5,6 @@
 namespace
 {
 	Kernel::LengthDistribution lDist;
-	Kernel::SurfaceDistribution sDist;
 	std::default_random_engine randEngine;
 
 	float scaleFunction(float scale, int sample, int maxSample)
@@ -79,11 +78,9 @@ namespace
 
 namespace Kernel
 {
-    // TODO: implement uniform surface distribution by using a icosahedron.
-	std::vector<glm::vec3> getKernel(int size, float minSize, float minAngle, KernelType type, LengthDistribution lengthDistribution, SurfaceDistribution surfaceDistribution)
+	std::vector<glm::vec3> getKernel(int size, float minSize, float minAngle, KernelType type, LengthDistribution lengthDistribution)
 	{
 		lDist = lengthDistribution;
-		sDist = surfaceDistribution;
 		switch (type) {
 		case KernelType::Sphere:
 			return getSphereKernel(size, minSize);

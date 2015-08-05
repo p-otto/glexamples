@@ -96,7 +96,7 @@ gloperate::UniformGroup* AmbientOcclusionStage::getUniformGroup()
 
 std::vector<glm::vec3> AmbientOcclusionStage::getKernel(int size)
 {
-    return Kernel::getKernel(size, m_occlusionOptions->minimalKernelLength(), m_occlusionOptions->minimalKernelAngle(), getKernelType(), m_occlusionOptions->lengthDistribution(), m_occlusionOptions->surfaceDistribution());
+    return Kernel::getKernel(size, m_occlusionOptions->minimalKernelLength(), m_occlusionOptions->minimalKernelAngle(), getKernelType(), m_occlusionOptions->lengthDistribution());
 }
 
 void AmbientOcclusionStage::setupKernel()

@@ -34,9 +34,6 @@ public:
 	Kernel::LengthDistribution lengthDistribution() const;
 	void setLengthDistribution(Kernel::LengthDistribution type);
 
-	Kernel::SurfaceDistribution surfaceDistribution() const;
-	void setSurfaceDistribution(Kernel::SurfaceDistribution type);
-
     // hbao settings
     int numDirections() const;
     void setNumDirections(int numDirections);
@@ -103,6 +100,4 @@ private:
 
 	Kernel::KernelType m_kernelType = Kernel::KernelType::Hemisphere;
 	Kernel::LengthDistribution m_lengthDistribution = Kernel::LengthDistribution::Quadratic;
-	Kernel::SurfaceDistribution m_surfaceDistribution = Kernel::SurfaceDistribution::Random;
-	// TODO: Add parameters for Kernel
 };
