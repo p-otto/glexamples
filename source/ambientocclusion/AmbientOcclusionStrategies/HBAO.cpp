@@ -14,6 +14,8 @@
 #include <gloperate/primitives/UniformGroup.h>
 #include <gloperate/base/make_unique.hpp>
 
+#include <glm/gtc/constants.hpp>
+
 
 using namespace gl;
 using namespace globjects;
@@ -36,16 +38,13 @@ Kernel::KernelType HBAO::getKernelType()
 std::vector<glm::vec3> HBAO::getNoiseTexture(int size) {
     std::vector<glm::vec3> tex(size * size);
 
-    // TODO: make actual distribution for normals
-    std::uniform_real_distribution<float> circleDistribution(-1.0, 1.0);
-    std::uniform_real_distribution<float> distribution(0.0, 1.0);
+	std::uniform_real_distribution<float> angleDistribution(0.0f, 2.0f * glm::pi<float>());
+    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
-    for (auto &vec : tex) {
-        vec[0] = circleDistribution(m_randEngine);
-        vec[1] = circleDistribution(m_randEngine);
-        vec[2] = 0.0f;
-
-        vec = glm::normalize(vec);
+	for (auto &vec : tex) {
+		auto angle = angleDistribution(m_randEngine);
+		vec[0] = glm::sin(angle);
+		vec[1] = glm::cos(angle);
         vec[2] = distribution(m_randEngine);
     }
 
