@@ -26,11 +26,14 @@ layout(location = 0) out vec3 occlusion;
 
 #include "/utility"
 
-float findHorizonAngle(vec2 startOffset, vec2 offset, int numSamples, float depth)
+float findHorizonAngle(vec2 offset, int numSamples, float depth, float randomOffset)
 {
+    // jitter starting offset
+    vec2 startOffset = offset * randomOffset;
+
     float largestHorizonAngle = -pi / 2;
 
-    for (int step = 1; step <= numSamples; step++) 
+    for (int step = 0; step < numSamples; step++) 
     {
         float sampleDistance = float(step) / numSamples;
         switch (u_lengthDistribution)
@@ -90,12 +93,10 @@ void main()
         scaledDirection = scaledDirection * 0.5 + 0.5;
         scaledDirection -= vec4(v_uv, 0.0, 0.0);
 
-        // jitter starting offset
-        vec2 startOffset = snapToGrid(scaledDirection.xy * random.z, resolution);
         vec2 offset = scaledDirection.xy;
 
         float tangentAngle = findTangentAngle(offset, dx, dy);
-        float horizonAngle = findHorizonAngle(startOffset, offset, u_numSamples, depth);
+        float horizonAngle = findHorizonAngle(offset, u_numSamples, depth, random.z);
         
         ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
     }

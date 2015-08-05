@@ -39,7 +39,7 @@ std::vector<glm::vec3> HBAO::getNoiseTexture(int size) {
     std::vector<glm::vec3> tex(size * size);
 
 	std::uniform_real_distribution<float> angleDistribution(0.0f, 2.0f * glm::pi<float>());
-    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+    std::uniform_real_distribution<float> distribution(0.5f, 1.5f);
 
 	for (auto &vec : tex) {
 		auto angle = angleDistribution(m_randEngine);
