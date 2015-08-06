@@ -26,22 +26,28 @@ layout(location = 0) out vec3 occlusion;
 
 #include "/utility"
 
-float findSampleAngle(vec2 offset, float step, int numSamples, float depth)
+float getSampleDistance(float step, int numSamples)
 {
-    float sampleDistance = float(step) / numSamples;
+    float sampleDistance = step / numSamples;
     switch (u_lengthDistribution)
     {
         case quadratic:
             sampleDistance *= sampleDistance;
             break;
         case starcraft:
-            if (step > 3 * float(numSamples) / 4) {
+            if (step > 3 * float(numSamples) / 4)
+            {
                 sampleDistance *= 4;
             }
             sampleDistance *= sampleDistance;
             break;
     }
-    vec2 sampleOffset = snapToGrid(offset * sampleDistance, resolution);
+    return sampleDistance;
+}
+
+float findSampleAngle(vec2 offset, float depth)
+{
+    vec2 sampleOffset = snapToGrid(offset, resolution);
     float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
     float sampleAngle = atan(depth - sampleDepth, length(sampleOffset));
 
@@ -64,7 +70,8 @@ float findOcclusion(vec2 offset, int numSamples, float depth, float randomOffset
 
     for (int step = 1; step <= numSamples; step++) 
     {
-        float horizonAngle = findSampleAngle(offset, randomOffset + step, numSamples, depth);
+        float sampleDistance = getSampleDistance(randomOffset + step, numSamples);
+        float horizonAngle = findSampleAngle(offset * sampleDistance, depth);
         largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
     }
 
