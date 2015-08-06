@@ -26,7 +26,7 @@ layout(location = 0) out vec3 occlusion;
 
 #include "/utility"
 
-float findSampleAngle(vec2 offset, float step, int numSamples, float depth, vec2 startOffset)
+float findSampleAngle(vec2 offset, float step, int numSamples, float depth)
 {
     float sampleDistance = float(step) / numSamples;
     switch (u_lengthDistribution)
@@ -41,7 +41,7 @@ float findSampleAngle(vec2 offset, float step, int numSamples, float depth, vec2
             sampleDistance *= sampleDistance;
             break;
     }
-    vec2 sampleOffset = snapToGrid(startOffset + offset * sampleDistance, resolution);
+    vec2 sampleOffset = snapToGrid(offset * sampleDistance, resolution);
     float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
     float sampleAngle = atan(depth - sampleDepth, length(sampleOffset));
 
@@ -60,14 +60,11 @@ float findOcclusion(vec2 offset, int numSamples, float depth, float randomOffset
 {
     float tangentAngle = findTangentAngle(offset, dx, dy);
 
-    // jitter starting offset
-    vec2 startOffset = offset * randomOffset;
-
     float largestHorizonAngle = - pi / 2;
 
-    for (int step = 0; step < numSamples; step++) 
+    for (int step = 1; step <= numSamples; step++) 
     {
-        float horizonAngle = findSampleAngle(offset, step, numSamples, depth, startOffset);
+        float horizonAngle = findSampleAngle(offset, randomOffset + step, numSamples, depth);
         largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
     }
 
