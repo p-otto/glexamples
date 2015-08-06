@@ -62,20 +62,36 @@ float findTangentAngle(vec2 offset, vec3 dx, vec3 dy)
     return tangentAngle;
 }
 
+float falloff(float angle, float sampleDistance)
+{
+    float normalizedDistance = sampleDistance / (7 * cos(angle));
+    return 1 - normalizedDistance * normalizedDistance;
+}
+
 float findOcclusion(vec2 offset, int numSamples, float depth, float randomOffset, vec3 dx, vec3 dy)
 {
     float tangentAngle = findTangentAngle(offset, dx, dy);
+    float occlusion = 0;
 
-    float largestHorizonAngle = - pi / 2;
+    float sampleAngle, sampleOcclusion;
+    float previousOcclusion = 0;
+    float previousAngle = - pi / 2;
 
     for (int step = 1; step <= numSamples; step++) 
     {
         float sampleDistance = getSampleDistance(randomOffset + step, numSamples);
-        float horizonAngle = findSampleAngle(offset * sampleDistance, depth);
-        largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
-    }
+        sampleAngle = findSampleAngle(offset * sampleDistance, depth);
 
-    return sin(largestHorizonAngle) - sin(tangentAngle);
+        if (sampleAngle > previousAngle)
+        {
+            sampleOcclusion = sin(sampleAngle) - sin(tangentAngle);
+            occlusion += falloff(sampleAngle, sampleDistance) * (sampleOcclusion - previousOcclusion);
+
+            previousAngle = sampleAngle;
+            previousOcclusion = sampleOcclusion;
+        }
+    }
+    return occlusion;
 }
 
 void main()
