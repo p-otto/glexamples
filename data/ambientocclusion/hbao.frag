@@ -26,35 +26,26 @@ layout(location = 0) out vec3 occlusion;
 
 #include "/utility"
 
-float findHorizonAngle(vec2 offset, int numSamples, float depth, float randomOffset)
+float findSampleAngle(vec2 offset, float step, int numSamples, float depth, vec2 startOffset)
 {
-    // jitter starting offset
-    vec2 startOffset = offset * randomOffset;
-
-    float largestHorizonAngle = -pi / 2;
-
-    for (int step = 0; step < numSamples; step++) 
+    float sampleDistance = float(step) / numSamples;
+    switch (u_lengthDistribution)
     {
-        float sampleDistance = float(step) / numSamples;
-        switch (u_lengthDistribution)
-        {
-            case quadratic:
-                sampleDistance *= sampleDistance;
-                break;
-            case starcraft:
-                if (step > 3 * float(numSamples) / 4) {
-                    sampleDistance *= 4;
-                }
-                sampleDistance *= sampleDistance;
-                break;
-        }
-        vec2 sampleOffset = snapToGrid(startOffset + offset * sampleDistance, resolution);
-        float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
-        float horizonAngle = atan(depth - sampleDepth, length(sampleOffset));
-
-        largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
+        case quadratic:
+            sampleDistance *= sampleDistance;
+            break;
+        case starcraft:
+            if (step > 3 * float(numSamples) / 4) {
+                sampleDistance *= 4;
+            }
+            sampleDistance *= sampleDistance;
+            break;
     }
-    return largestHorizonAngle;
+    vec2 sampleOffset = snapToGrid(startOffset + offset * sampleDistance, resolution);
+    float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
+    float sampleAngle = atan(depth - sampleDepth, length(sampleOffset));
+
+    return sampleAngle;
 }
 
 float findTangentAngle(vec2 offset, vec3 dx, vec3 dy)
@@ -63,6 +54,24 @@ float findTangentAngle(vec2 offset, vec3 dx, vec3 dy)
     float tangentAngle = atan(T.z / length(T.xy));
 
     return tangentAngle;
+}
+
+float findOcclusion(vec2 offset, int numSamples, float depth, float randomOffset, vec3 dx, vec3 dy)
+{
+    float tangentAngle = findTangentAngle(offset, dx, dy);
+
+    // jitter starting offset
+    vec2 startOffset = offset * randomOffset;
+
+    float largestHorizonAngle = - pi / 2;
+
+    for (int step = 0; step < numSamples; step++) 
+    {
+        float horizonAngle = findSampleAngle(offset, step, numSamples, depth, startOffset);
+        largestHorizonAngle = max(largestHorizonAngle, horizonAngle);
+    }
+
+    return sin(largestHorizonAngle) - sin(tangentAngle);
 }
 
 void main()
@@ -94,11 +103,8 @@ void main()
         scaledDirection -= vec4(v_uv, 0.0, 0.0);
 
         vec2 offset = scaledDirection.xy;
-
-        float tangentAngle = findTangentAngle(offset, dx, dy);
-        float horizonAngle = findHorizonAngle(offset, u_numSamples, depth, random.z);
         
-        ambientOcclusion += sin(horizonAngle) - sin(tangentAngle);
+        ambientOcclusion += findOcclusion(offset, u_numSamples, depth, random.z, dx, dy);
     }
     ambientOcclusion /= u_numDirections;
 
