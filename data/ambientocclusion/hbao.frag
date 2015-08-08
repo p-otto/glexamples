@@ -47,9 +47,8 @@ float getSampleDistance(float step, int numSamples)
 
 float findSampleAngle(vec2 offset, float depth)
 {
-    vec2 sampleOffset = snapToGrid(offset, resolution);
-    float sampleDepth = texture(u_normal_depth, v_uv + sampleOffset).a;
-    float sampleAngle = atan(depth - sampleDepth, length(sampleOffset));
+    float sampleDepth = texture(u_normal_depth, v_uv + offset).a;
+    float sampleAngle = atan(depth - sampleDepth, length(offset));
 
     return sampleAngle;
 }
@@ -116,13 +115,16 @@ void main()
         sampleDirection = rotate(sampleDirection, random.xy);
         sampleDirection = normalize(sampleDirection);
 
-        // compute view dependent sample vector
-        vec4 scaledDirection = u_proj * vec4(position + vec3(sampleDirection * u_kernelRadius, 0.0), 1.0);
-        scaledDirection /= scaledDirection.w;
-        scaledDirection = scaledDirection * 0.5 + 0.5;
-        scaledDirection -= vec4(v_uv, 0.0, 0.0);
+        // multiply by factor to make effect more similar to other methods
+        vec3 scaledDirection = vec3(sampleDirection * u_kernelRadius * 0.2, 0.0);
+        
+        // compute view dependent sample vector 
+        vec4 projectedDirection = u_proj * vec4(position + scaledDirection, 1.0);
+        projectedDirection /= projectedDirection.w;
+        projectedDirection = projectedDirection * 0.5 + 0.5;
+        projectedDirection -= vec4(v_uv, 0.0, 0.0);
 
-        vec2 offset = scaledDirection.xy;
+        vec2 offset = projectedDirection.xy;
         
         ambientOcclusion += findOcclusion(offset, u_numSamples, depth, random.z, dx, dy);
     }
