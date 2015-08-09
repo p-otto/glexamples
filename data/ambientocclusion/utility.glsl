@@ -38,8 +38,3 @@ vec2 rotate(vec2 direction, vec2 rand)
     return vec2(direction.x*rand.x - direction.y*rand.y,
                   direction.x*rand.y + direction.y*rand.x);
 }
-
-vec2 snapToGrid(vec2 offset, ivec2 resolution)
-{
-    return round(offset * resolution) / resolution;
-}

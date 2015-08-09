@@ -20,8 +20,6 @@ const int linear = 0;
 const int quadratic = 1;
 const int starcraft = 2;
 
-ivec2 resolution = ivec2(u_resolutionX, u_resolutionY);
-
 layout(location = 0) out vec3 occlusion;
 
 #include "/utility"

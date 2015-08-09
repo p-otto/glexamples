@@ -15,7 +15,6 @@ uniform int u_resolutionX;
 uniform int u_resolutionY;
 uniform float u_kernelRadius;
 uniform int u_kernelSize;
-uniform bool u_attenuation;
 
 #define MAX_KERNEL_SIZE 128
 uniform vec3 kernel[MAX_KERNEL_SIZE];
