@@ -31,8 +31,8 @@ using namespace globjects;
 
 using widgetzeug::make_unique;
 
-EmptyExample::EmptyExample(gloperate::ResourceManager & resourceManager, const std::string & relDataPath)
-:   Painter("EmptyExample", resourceManager, relDataPath)
+EmptyExample::EmptyExample(gloperate::ResourceManager & resourceManager, const reflectionzeug::Variant & pluginInfo)
+:   Painter("EmptyExample", resourceManager, pluginInfo)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
